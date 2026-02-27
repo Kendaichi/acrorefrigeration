@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
@@ -128,11 +129,16 @@ const Hero = () => {
             }}
           >
             <div className="rounded-2xl overflow-hidden shadow-2xl shadow-foreground/5">
-              <img
-                src={heroImg.src}
-                alt="Commercial cold room installation by Acro Refrigeration"
-                className="w-full h-[240px] sm:h-[320px] lg:h-[500px] object-cover"
-              />
+              <div className="relative w-full h-[240px] sm:h-[320px] lg:h-[500px]">
+                <Image
+                  src={heroImg}
+                  alt="Commercial cold room installation by Acro Refrigeration"
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 50vw"
+                />
+              </div>
             </div>
 
             {floatingStats.map((stat) => (

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import ScrollReveal from "@/components/ScrollReveal";
 
 import brisbanClub from "@/assets/clients/brisbane-club.png";
@@ -12,14 +13,14 @@ import orford from "@/assets/clients/orford.png";
 import stamford from "@/assets/clients/stamford-1.png";
 
 const clients = [
-  { src: brisbanClub.src, alt: "Brisbane Club" },
-  { src: marriott.src, alt: "Marriott" },
-  { src: gambaro.src, alt: "Gambaro" },
-  { src: geebungRsl.src, alt: "Geebung RSL" },
-  { src: kedron.src, alt: "Kedron" },
-  { src: norths.src, alt: "Norths" },
-  { src: orford.src, alt: "Orford" },
-  { src: stamford.src, alt: "Stamford" },
+  { src: brisbanClub, alt: "Brisbane Club" },
+  { src: marriott, alt: "Marriott" },
+  { src: gambaro, alt: "Gambaro" },
+  { src: geebungRsl, alt: "Geebung RSL" },
+  { src: kedron, alt: "Kedron" },
+  { src: norths, alt: "Norths" },
+  { src: orford, alt: "Orford" },
+  { src: stamford, alt: "Stamford" },
 ];
 
 const ClientsSection = () => (
@@ -37,11 +38,16 @@ const ClientsSection = () => (
         {clients.map((client, i) => (
           <ScrollReveal key={client.alt} delay={i * 80}>
             <div className="flex items-center justify-center p-4 rounded-xl bg-background border border-border h-24 hover-lift">
-              <img
-                src={client.src}
-                alt={client.alt}
-                className="max-h-14 max-w-full object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
-              />
+              <div className="relative w-full h-14">
+                <Image
+                  src={client.src}
+                  alt={client.alt}
+                  fill
+                  className="object-contain grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                  loading="lazy"
+                  sizes="(max-width: 640px) 45vw, 22vw"
+                />
+              </div>
             </div>
           </ScrollReveal>
         ))}

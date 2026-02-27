@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X, Phone, ChevronDown, MapPin, Wrench, Building2, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -121,10 +122,13 @@ const Navbar = () => {
           href="/"
           className="flex items-center gap-2 font-extrabold text-xl tracking-tight"
         >
-          <img
-            src={acroLogo.src}
+          <Image
+            src={acroLogo}
             alt="Acro Refrigeration"
-            className="h-10 w-10 object-contain"
+            width={40}
+            height={40}
+            className="object-contain"
+            priority
           />
           <span>Acro Refrigeration</span>
         </Link>
