@@ -29,6 +29,53 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SuburbPageRoute({ params }: Props) {
   const { citySlug, suburbSlug } = await params;
-  if (!getSuburbBySlug(citySlug, suburbSlug)) notFound();
-  return <SuburbPage />;
+  const result = getSuburbBySlug(citySlug, suburbSlug);
+  if (!result) notFound();
+  const { city, suburb } = result;
+
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: "Acro Refrigeration",
+    description: `24/7 emergency refrigeration repairs and maintenance in ${suburb.name}, ${city.name}.`,
+    url: "https://acrorefrigeration.com.au",
+    telephone: "+611300227600",
+    email: "service@acrorefrigeration.com.au",
+    areaServed: [
+      { "@type": "City", name: city.name },
+      { "@type": "Place", name: suburb.name },
+    ],
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: suburb.name,
+      addressRegion: "QLD",
+      addressCountry: "AU",
+    },
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "07:00",
+      closes: "17:00",
+    },
+    priceRange: "$$",
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://acrorefrigeration.com.au" },
+      { "@type": "ListItem", position: 2, name: "Locations", item: "https://acrorefrigeration.com.au/locations" },
+      { "@type": "ListItem", position: 3, name: city.name, item: `https://acrorefrigeration.com.au/locations/${citySlug}` },
+      { "@type": "ListItem", position: 4, name: suburb.name, item: `https://acrorefrigeration.com.au/locations/${citySlug}/${suburbSlug}` },
+    ],
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <SuburbPage />
+    </>
+  );
 }

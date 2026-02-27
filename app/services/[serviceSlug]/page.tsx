@@ -23,6 +23,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ServicePageRoute({ params }: Props) {
   const { serviceSlug } = await params;
-  if (!servicesData[serviceSlug]) notFound();
-  return <ServicePage />;
+  const service = servicesData[serviceSlug];
+  if (!service) notFound();
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: service.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: { "@type": "Answer", text: faq.a },
+    })),
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://acrorefrigeration.com.au" },
+      { "@type": "ListItem", position: 2, name: "Services", item: "https://acrorefrigeration.com.au/services" },
+      { "@type": "ListItem", position: 3, name: service.title, item: `https://acrorefrigeration.com.au/services/${serviceSlug}` },
+    ],
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <ServicePage />
+    </>
+  );
 }

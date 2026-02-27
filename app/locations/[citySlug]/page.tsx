@@ -23,6 +23,51 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CityPageRoute({ params }: Props) {
   const { citySlug } = await params;
-  if (!getCityBySlug(citySlug)) notFound();
-  return <CityHub />;
+  const city = getCityBySlug(citySlug);
+  if (!city) notFound();
+
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: "Acro Refrigeration",
+    description: city.regionDescription,
+    url: "https://acrorefrigeration.com.au",
+    telephone: "+611300227600",
+    email: "service@acrorefrigeration.com.au",
+    areaServed: {
+      "@type": "City",
+      name: city.name,
+    },
+    address: {
+      "@type": "PostalAddress",
+      addressRegion: "QLD",
+      addressCountry: "AU",
+    },
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "07:00",
+      closes: "17:00",
+    },
+    priceRange: "$$",
+    sameAs: ["https://acrorefrigeration.com.au"],
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://acrorefrigeration.com.au" },
+      { "@type": "ListItem", position: 2, name: "Locations", item: "https://acrorefrigeration.com.au/locations" },
+      { "@type": "ListItem", position: 3, name: city.name, item: `https://acrorefrigeration.com.au/locations/${citySlug}` },
+    ],
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <CityHub />
+    </>
+  );
 }
