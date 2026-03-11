@@ -1,23 +1,62 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import ScrollReveal from "@/components/ScrollReveal";
 import { createClient } from "@/lib/supabase/client";
 import type { Testimonial } from "@/lib/supabase/content";
 import { testimonialsSection } from "@/data/home";
 
+const AUTOPLAY_INTERVAL = 5000;
+
 const Testimonials = () => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    createClient().from("testimonials").select("*").order("position")
-      .then(({ data }) => { if (data?.length) setTestimonials(data); });
+    createClient()
+      .from("testimonials")
+      .select("*")
+      .order("position")
+      .then(({ data }) => {
+        if (data?.length) setTestimonials(data);
+      });
   }, []);
 
-  const items = testimonials.length > 0
-    ? testimonials
-    : testimonialsSection.testimonials.map((t, i) => ({ id: String(i), ...t, rating: 5, position: i }));
+  const items =
+    testimonials.length > 0
+      ? testimonials
+      : testimonialsSection.testimonials.map((t, i) => ({
+          id: String(i),
+          ...t,
+          rating: 5,
+          position: i,
+        }));
+
+  const go = useCallback(
+    (dir: 1 | -1) => {
+      setDirection(dir);
+      setIndex((prev) => (prev + dir + items.length) % items.length);
+    },
+    [items.length]
+  );
+
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(() => go(1), AUTOPLAY_INTERVAL);
+    return () => clearInterval(id);
+  }, [paused, go]);
+
+  const variants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
+  };
+
+  const t = items[index];
 
   return (
     <section className="section-padding bg-secondary">
@@ -30,27 +69,79 @@ const Testimonials = () => {
             {testimonialsSection.subheading}
           </p>
         </ScrollReveal>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-          {items.map((t, i) => (
-            <ScrollReveal key={t.id} delay={i * 120}>
-              <div className="bg-card rounded-2xl p-5 md:p-8 border border-border shadow-sm hover-lift h-full">
-                <div className="flex gap-1 mb-4">
+
+        <div
+          className="relative max-w-2xl mx-auto"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          {/* Slide */}
+          <div className="overflow-hidden">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={t.id}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.35, ease: "easeInOut" }}
+                className="bg-card rounded-2xl p-8 md:p-10 border border-border shadow-sm"
+              >
+                <div className="flex gap-1 mb-5">
                   {[...Array(5)].map((_, j) => (
                     <Star
                       key={j}
-                      className={`w-4 h-4 ${j < (t.rating ?? 5) ? "fill-primary text-primary" : "text-muted-foreground"}`}
+                      className={`w-5 h-5 ${
+                        j < (t.rating ?? 5)
+                          ? "fill-primary text-primary"
+                          : "text-muted-foreground"
+                      }`}
                     />
                   ))}
                 </div>
-                <p className="text-sm leading-relaxed mb-6 text-muted-foreground">
+                <p className="text-base md:text-lg leading-relaxed mb-8 text-muted-foreground">
                   &ldquo;{t.quote}&rdquo;
                 </p>
                 <div>
-                  <div className="font-semibold text-sm">{t.name}</div>
-                  <div className="text-xs text-muted-foreground">{t.role}</div>
+                  <div className="font-semibold">{t.name}</div>
+                  <div className="text-sm text-muted-foreground">{t.role}</div>
                 </div>
-              </div>
-            </ScrollReveal>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Prev / Next */}
+          <button
+            onClick={() => go(-1)}
+            aria-label="Previous testimonial"
+            className="absolute -left-5 md:-left-12 top-1/2 -translate-y-1/2 bg-card border border-border rounded-full p-2 shadow hover:bg-accent transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => go(1)}
+            aria-label="Next testimonial"
+            className="absolute -right-5 md:-right-12 top-1/2 -translate-y-1/2 bg-card border border-border rounded-full p-2 shadow hover:bg-accent transition-colors"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Dots */}
+        <div className="flex justify-center gap-2 mt-6">
+          {items.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                setDirection(i > index ? 1 : -1);
+                setIndex(i);
+              }}
+              aria-label={`Go to testimonial ${i + 1}`}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                i === index ? "bg-primary w-5" : "bg-muted-foreground/40"
+              }`}
+            />
           ))}
         </div>
       </div>
