@@ -6,7 +6,10 @@ export const metadata = { title: "Admin | Acro Refrigeration" };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  // getSession() reads from the cookie — no network round-trip.
+  // The middleware already validated the user on every request, so this is safe.
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) return <>{children}</>;
 
