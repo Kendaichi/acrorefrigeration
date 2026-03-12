@@ -10,11 +10,25 @@ export const metadata: Metadata = {
   description:
     "Expert guides and articles on commercial refrigeration, HACCP compliance, energy efficiency and cold room maintenance. Free resources from Acro Refrigeration.",
   alternates: { canonical: "https://acrorefrigeration.com.au/resources" },
-  openGraph: { url: "https://acrorefrigeration.com.au/resources" },
+  openGraph: { url: "https://acrorefrigeration.com.au/resources", images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }] },
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home",      item: "https://acrorefrigeration.com.au" },
+    { "@type": "ListItem", position: 2, name: "Resources", item: "https://acrorefrigeration.com.au/resources" },
+  ],
 };
 
 export default async function ResourcesPage() {
   const supabase = await createClient();
   const posts = await getPublishedPosts(supabase);
-  return <Resources posts={posts} />;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <Resources posts={posts} />
+    </>
+  );
 }

@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     url: "https://acrorefrigeration.com.au/",
+    images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }],
   },
 };
 
@@ -22,6 +23,8 @@ const localBusinessSchema = {
   description:
     "Australia's trusted commercial refrigeration contractor. 24/7 emergency repairs, preventative maintenance plans and custom cold room builds. HACCP-certified.",
   url: "https://acrorefrigeration.com.au",
+  logo: "https://acrorefrigeration.com.au/icon.png",
+  image: "https://acrorefrigeration.com.au/og-image.jpg",
   telephone: "1300227600",
   email: "info@acrorefrigeration.com.au",
   address: {
@@ -30,9 +33,20 @@ const localBusinessSchema = {
     addressRegion: "QLD",
     addressCountry: "AU",
   },
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "1300227600",
+    contactType: "customer service",
+    availableLanguage: "English",
+    areaServed: "AU",
+  },
   openingHours: "Mo-Fr 07:00-17:00",
-  areaServed: ["Brisbane", "Gold Coast", "Sunshine Coast", "SE Queensland", "Australia"],
+  areaServed: ["Brisbane", "Gold Coast", "Sunshine Coast", "SE Queensland"],
   priceRange: "$$",
+  sameAs: [
+    "https://www.facebook.com/acrorefrigeration/",
+    "https://www.linkedin.com/company/acro-refrigeration-qld/",
+  ],
 };
 
 export default async function Home() {
@@ -50,10 +64,18 @@ export default async function Home() {
     ? testimonials.map((t) => ({ name: t.name, role: t.role, quote: t.quote, rating: t.rating ?? 5 }))
     : testimonialsSection.testimonials.map((t) => ({ ...t, rating: 5 }));
 
+  const avgRating = reviewItems.reduce((sum, t) => sum + t.rating, 0) / reviewItems.length;
+
   const reviewsSchema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: "Acro Refrigeration",
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: avgRating.toFixed(1),
+      reviewCount: reviewItems.length,
+      bestRating: 5,
+    },
     review: reviewItems.map((t) => ({
       "@type": "Review",
       author: { "@type": "Person", name: t.name },

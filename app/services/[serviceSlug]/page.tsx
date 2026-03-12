@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: service.title,
     description: service.meta_description || service.description,
     alternates: { canonical: `https://acrorefrigeration.com.au/services/${serviceSlug}` },
-    openGraph: { url: `https://acrorefrigeration.com.au/services/${serviceSlug}` },
+    openGraph: { url: `https://acrorefrigeration.com.au/services/${serviceSlug}`, images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }] },
   };
 }
 
@@ -44,6 +44,21 @@ export default async function ServicePageRoute({ params }: Props) {
           .in("slug", service.related_service_slugs)
         ).data ?? []
       : [];
+
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: service.title,
+    description: service.description,
+    url: `https://acrorefrigeration.com.au/services/${serviceSlug}`,
+    provider: {
+      "@type": "LocalBusiness",
+      name: "Acro Refrigeration",
+      url: "https://acrorefrigeration.com.au",
+      telephone: "1300227600",
+    },
+    areaServed: { "@type": "State", name: "Queensland", addressCountry: "AU" },
+  };
 
   const faqSchema = {
     "@context": "https://schema.org",
@@ -67,6 +82,7 @@ export default async function ServicePageRoute({ params }: Props) {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <ServicePage service={service} relatedServices={relatedServices} />

@@ -39,6 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }],
   },
 };
 

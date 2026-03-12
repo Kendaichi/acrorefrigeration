@@ -4,14 +4,25 @@ import { termsContent } from "@/data/legal";
 const TermsOfService = () => (
   <Layout>
     <div className="container-narrow section-padding">
-      <h1 className="text-4xl font-extrabold mb-4">{termsContent.title}</h1>
-      <p className="text-muted-foreground mb-8">Last updated: {termsContent.lastUpdated}</p>
+      {/* Header */}
+      <h1 className="text-4xl font-extrabold mb-3">{termsContent.title}</h1>
+      <p className="text-muted-foreground mb-1">{termsContent.intro}</p>
+      <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground mt-3 mb-8">
+        <span><strong>Effective Date:</strong> {termsContent.effectiveDate}</span>
+        <span><strong>QBCC Licence:</strong> #{termsContent.qbcc}</span>
+        <span><strong>ABN:</strong> {termsContent.abn}</span>
+      </div>
+
+      {/* Sections */}
       <div className="prose prose-lg max-w-none space-y-8 text-foreground/80">
         {termsContent.sections.map((section) => (
           <section key={section.heading}>
             <h2 className="text-2xl font-bold text-foreground">{section.heading}</h2>
-            <p>{section.body}</p>
-            {section.body2 && <p>{section.body2}</p>}
+
+            {section.bodies?.map((body, i) => (
+              <p key={i}>{body}</p>
+            ))}
+
             {section.list && (
               <ul className="list-disc pl-6 space-y-2">
                 {section.list.map((item) => (
@@ -19,6 +30,18 @@ const TermsOfService = () => (
                 ))}
               </ul>
             )}
+
+            {section.numberedItems && (
+              <dl className="space-y-3 mt-4">
+                {section.numberedItems.map((item) => (
+                  <div key={item.id} className="flex gap-4">
+                    <dt className="font-semibold shrink-0 w-10">{item.id}</dt>
+                    <dd>{item.text}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+
             {section.contactDetails && (
               <ul className="list-none space-y-1">
                 {section.contactDetails.map((cd) => (

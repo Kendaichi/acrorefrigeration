@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description:
     "Transparent pricing for commercial cold rooms and refrigeration systems. Standard cold rooms from $15,000. Get a custom quote for your project.",
   alternates: { canonical: "https://acrorefrigeration.com.au/pricing" },
-  openGraph: { url: "https://acrorefrigeration.com.au/pricing" },
+  openGraph: { url: "https://acrorefrigeration.com.au/pricing", images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }] },
 };
 
 export default async function PricingPage() {

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Request a quote for emergency repairs, maintenance plans or a new cold room build. Fast response, HACCP-certified. Acro Refrigeration — Brisbane & SE Queensland.",
   alternates: { canonical: "https://acrorefrigeration.com.au/contact" },
-  openGraph: { url: "https://acrorefrigeration.com.au/contact" },
+  openGraph: { url: "https://acrorefrigeration.com.au/contact", images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }] },
 };
 
 export default async function ContactPage() {

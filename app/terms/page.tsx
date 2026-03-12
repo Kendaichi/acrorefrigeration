@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import TermsOfService from "@/components/pages/TermsOfService";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | Acro Refrigeration – Brisbane Commercial Refrigeration",
+  title: "Terms & Conditions | Acro Refrigeration – Brisbane Commercial Refrigeration",
   description:
-    "Read Acro Refrigeration's Terms of Service governing the use of our website and commercial refrigeration services across Brisbane, Gold Coast and SE Queensland.",
+    "Terms & Conditions for all quotations, work orders, repairs, maintenance, and installations performed by HVACR Pty Ltd trading as ACRO Refrigeration and Shelair Group. QBCC #15413155.",
   alternates: { canonical: "https://acrorefrigeration.com.au/terms" },
-  openGraph: { url: "https://acrorefrigeration.com.au/terms" },
+  openGraph: { url: "https://acrorefrigeration.com.au/terms", images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }] },
 };
 
 export default function TermsOfServicePage() {

@@ -10,11 +10,25 @@ export const metadata: Metadata = {
   description:
     "Specialist commercial refrigeration repairs and maintenance for restaurants, supermarkets, pharmaceuticals, warehousing and food production. HACCP and TGA compliant. Brisbane & SE Queensland.",
   alternates: { canonical: "https://acrorefrigeration.com.au/industries" },
-  openGraph: { url: "https://acrorefrigeration.com.au/industries" },
+  openGraph: { url: "https://acrorefrigeration.com.au/industries", images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }] },
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home",       item: "https://acrorefrigeration.com.au" },
+    { "@type": "ListItem", position: 2, name: "Industries", item: "https://acrorefrigeration.com.au/industries" },
+  ],
 };
 
 export default async function IndustriesPage() {
   const supabase = await createClient();
   const industries = await getAllIndustries(supabase);
-  return <Industries industries={industries} />;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <Industries industries={industries} />
+    </>
+  );
 }

@@ -30,6 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       url: `https://acrorefrigeration.com.au/resources/${resourceSlug}`,
       type: "article",
+      images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }],
     },
   };
 }
@@ -57,6 +58,8 @@ export default async function ResourcePageRoute({ params }: Props) {
     headline: post.title,
     description: post.meta_description,
     url: `https://acrorefrigeration.com.au/resources/${resourceSlug}`,
+    datePublished: post.date,
+    dateModified: post.updated_at ?? post.date,
     author: {
       "@type": "Organization",
       name: "Acro Refrigeration",
@@ -66,6 +69,7 @@ export default async function ResourcePageRoute({ params }: Props) {
       "@type": "Organization",
       name: "Acro Refrigeration",
       url: "https://acrorefrigeration.com.au",
+      logo: { "@type": "ImageObject", url: "https://acrorefrigeration.com.au/icon.png" },
     },
     mainEntityOfPage: {
       "@type": "WebPage",

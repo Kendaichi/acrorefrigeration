@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${brand.name} Compressor Repairs & Servicing`,
     description: brand.description,
     alternates: { canonical: `https://acrorefrigeration.com.au/brands/${brandSlug}` },
-    openGraph: { url: `https://acrorefrigeration.com.au/brands/${brandSlug}` },
+    openGraph: { url: `https://acrorefrigeration.com.au/brands/${brandSlug}`, images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }] },
   };
 }
 

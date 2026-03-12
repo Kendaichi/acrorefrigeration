@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `Commercial Refrigeration Repairs ${suburb.name}`,
     description: `24/7 emergency repairs, preventative maintenance and cold room builds in ${suburb.name} and surrounding areas. Fast response, HACCP-certified.`,
     alternates: { canonical: `https://acrorefrigeration.com.au/locations/${citySlug}/${suburbSlug}` },
-    openGraph: { url: `https://acrorefrigeration.com.au/locations/${citySlug}/${suburbSlug}` },
+    openGraph: { url: `https://acrorefrigeration.com.au/locations/${citySlug}/${suburbSlug}`, images: [{ url: "/og-image.jpg", alt: "Acro Refrigeration" }] },
   };
 }
 
