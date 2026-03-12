@@ -104,6 +104,7 @@ export default function BrandEditor({ brand, nextPosition }: { brand?: Brand; ne
       router.refresh();
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
       setSaving(false);
     }
   };

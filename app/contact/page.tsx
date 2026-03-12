@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Contact from "@/components/pages/Contact";
+import { createClient } from "@/lib/supabase/server";
+import { getSiteSettings } from "@/lib/supabase/content";
 
 export const metadata: Metadata = {
   title: "Contact Us",
@@ -9,6 +11,8 @@ export const metadata: Metadata = {
   openGraph: { url: "https://acrorefrigeration.com.au/contact" },
 };
 
-export default function ContactPage() {
-  return <Contact />;
+export default async function ContactPage() {
+  const supabase = await createClient();
+  const settings = await getSiteSettings(supabase);
+  return <Contact settings={settings} />;
 }

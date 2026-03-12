@@ -1,6 +1,6 @@
 export interface PricingTier {
   name: string;
-  desc: string;
+  description: string;
   price: string;
   unit: string;
   features: string[];
@@ -21,7 +21,7 @@ export const pricingPage = {
 export const pricingTiers: PricingTier[] = [
   {
     name: "Emergency Call-Out",
-    desc: "For one-off breakdowns and urgent repairs.",
+    description: "For one-off breakdowns and urgent repairs.",
     price: "From $220",
     unit: "per call-out",
     features: [
@@ -35,7 +35,7 @@ export const pricingTiers: PricingTier[] = [
   },
   {
     name: "Maintenance Plan",
-    desc: "Scheduled servicing to prevent breakdowns.",
+    description: "Scheduled servicing to prevent breakdowns.",
     price: "From $450",
     unit: "per month",
     features: [
@@ -50,7 +50,7 @@ export const pricingTiers: PricingTier[] = [
   },
   {
     name: "Cold Room Build",
-    desc: "Custom cold room design, fabrication & install.",
+    description: "Custom cold room design, fabrication & install.",
     price: "From $15,000",
     unit: "project",
     features: [

@@ -15,7 +15,6 @@ const Testimonials = () => {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [paused, setPaused] = useState(false);
-
   useEffect(() => {
     createClient()
       .from("testimonials")
@@ -46,7 +45,7 @@ const Testimonials = () => {
 
   useEffect(() => {
     if (paused) return;
-    const id = setInterval(() => go(1), AUTOPLAY_INTERVAL);
+    const id = setInterval(() => { if (!document.hidden) go(1); }, AUTOPLAY_INTERVAL);
     return () => clearInterval(id);
   }, [paused, go]);
 

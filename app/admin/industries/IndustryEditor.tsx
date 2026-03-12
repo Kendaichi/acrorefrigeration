@@ -127,6 +127,7 @@ export default function IndustryEditor({ industry, nextPosition }: { industry?: 
       router.refresh();
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
       setSaving(false);
     }
   };

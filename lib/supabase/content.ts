@@ -232,6 +232,8 @@ export interface SiteSettings {
   linkedin_url: string;
   instagram_url: string;
   footer_company_links: FooterLink[];
+  business_hours: string;
+  emergency_text: string;
   updated_at: string;
 }
 
@@ -268,6 +270,24 @@ export interface Testimonial {
 export async function getAllTestimonials(supabase: SupabaseClient): Promise<Testimonial[]> {
   const { data, error } = await supabase.from("testimonials").select("*").order("position");
   if (error) return [];
+  return data ?? [];
+}
+
+// ── Pricing Tiers ────────────────────────────────────────────────────────────
+
+export interface PricingTier {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  unit: string;
+  features: string[];
+  popular: boolean;
+  position: number;
+}
+
+export async function getAllPricingTiers(supabase: SupabaseClient): Promise<PricingTier[]> {
+  const { data } = await supabase.from("pricing_tiers").select("*").order("position");
   return data ?? [];
 }
 

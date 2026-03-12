@@ -113,6 +113,7 @@ export default function ServiceEditor({ service, nextPosition }: { service?: Ser
       router.refresh();
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
       setSaving(false);
     }
   };

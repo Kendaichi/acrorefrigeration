@@ -18,8 +18,9 @@ type DynamicItem = { slug: string; title: string };
 const staticMenus: Record<string, MenuItem[]> = {};
 
 const plainLinks = [
+  { label: "Pricing",   href: "/pricing" },
   { label: "Resources", href: "/resources" },
-  { label: "Contact", href: "/contact" },
+  { label: "Contact",   href: "/contact" },
 ];
 
 const dropdownKeys: { key: DropdownKey; label: string }[] = [
@@ -36,31 +37,34 @@ const topIcon: Record<DropdownKey, React.ReactNode> = {
   locations:  <MapPin   className="w-3.5 h-3.5 text-primary shrink-0" />,
 };
 
-const Navbar = () => {
+function formatPhone(raw: string) {
+  // e.g. "1300227600" → "1300 227 600", "0412345678" → "0412 345 678"
+  return raw.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
+}
+
+const Navbar = ({ phone = "1300227600" }: { phone?: string }) => {
   const { markReady } = useLoading();
   const [serviceItems, setServiceItems]   = useState<DynamicItem[]>([]);
   const [industryItems, setIndustryItems] = useState<DynamicItem[]>([]);
   const [brandItems, setBrandItems]       = useState<DynamicItem[]>([]);
   const [cityItems, setCityItems]         = useState<DynamicItem[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [loadedCount, setLoadedCount] = useState(0);
-
-  useEffect(() => {
-    if (loadedCount >= 4) markReady();
-  }, [loadedCount, markReady]);
 
   useEffect(() => {
     const supabase = createClient();
-    const done = () => setLoadedCount((c) => c + 1);
-    supabase.from("services").select("slug, title").not("slug", "is", null).order("position")
-      .then(({ data }) => { if (data) setServiceItems(data); done(); });
-    supabase.from("industries").select("slug, title").order("position")
-      .then(({ data }) => { if (data) setIndustryItems(data); done(); });
-    supabase.from("brands").select("slug, name").order("position")
-      .then(({ data }) => { if (data) setBrandItems(data.map((b) => ({ slug: b.slug, title: b.name }))); done(); });
-    supabase.from("location_cities").select("slug, name").order("position")
-      .then(({ data }) => { if (data) setCityItems(data.map((c) => ({ slug: c.slug, title: c.name }))); done(); });
-  }, []);
+    Promise.all([
+      supabase.from("services").select("slug, title").not("slug", "is", null).order("position"),
+      supabase.from("industries").select("slug, title").order("position"),
+      supabase.from("brands").select("slug, name").order("position"),
+      supabase.from("location_cities").select("slug, name").order("position"),
+    ]).then(([services, industries, brands, cities]) => {
+      if (services.data)   setServiceItems(services.data);
+      if (industries.data) setIndustryItems(industries.data);
+      if (brands.data)     setBrandItems(brands.data.map((b) => ({ slug: b.slug, title: b.name })));
+      if (cities.data)     setCityItems(cities.data.map((c) => ({ slug: c.slug, title: c.name })));
+      markReady();
+    });
+  }, [markReady]);
   const [activeDropdown, setActiveDropdown] = useState<DropdownKey | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<DropdownKey | null>(null);
   const pathname = usePathname();
@@ -162,8 +166,8 @@ const Navbar = () => {
         </nav>
 
         <div className="hidden lg:flex items-center gap-3">
-          <a href="tel:1300227600" className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <Phone className="w-4 h-4" /> 1300 227 600
+          <a href={`tel:${phone}`} className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Phone className="w-4 h-4" /> {formatPhone(phone)}
           </a>
           <Button asChild><Link href="/contact">Get a Quote</Link></Button>
         </div>
@@ -218,8 +222,8 @@ const Navbar = () => {
           </nav>
 
           <div className="mt-4 flex flex-col gap-2">
-            <a href="tel:1300227600" className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <Phone className="w-4 h-4" /> 1300 227 600
+            <a href={`tel:${phone}`} className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <Phone className="w-4 h-4" /> {formatPhone(phone)}
             </a>
             <Button asChild className="w-full">
               <Link href="/contact" onClick={() => setMobileOpen(false)}>Get a Quote</Link>

@@ -1,18 +1,14 @@
 "use client";
 
-import Layout from "@/components/Layout";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Check } from "lucide-react";
-import CTABanner from "@/components/home/CTABanner";
-import FAQSection from "@/components/home/FAQSection";
 import { motion, Variants } from "framer-motion";
-import { pricingTiers, pricingPage } from "@/data/pricing";
-
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-};
+import ScrollReveal from "@/components/ScrollReveal";
+import { createClient } from "@/lib/supabase/client";
+import type { PricingTier } from "@/lib/supabase/content";
+import { pricingTiers as fallbackTiers, pricingPage } from "@/data/pricing";
 
 const cardVariant: Variants = {
   hidden: { opacity: 0, y: 40, scale: 0.97 },
@@ -24,41 +20,50 @@ const cardVariant: Variants = {
   }),
 };
 
-const Pricing = () => (
-  <Layout>
-    
+const PricingSection = () => {
+  const [tiers, setTiers] = useState<PricingTier[]>([]);
+  useEffect(() => {
+    createClient()
+      .from("pricing_tiers")
+      .select("*")
+      .order("position")
+      .then(({ data }) => {
+        if (data?.length) setTiers(data);
+      });
+  }, []);
+
+  const items: PricingTier[] = tiers.length
+    ? tiers
+    : fallbackTiers.map((t, i) => ({
+        id: String(i),
+        position: i,
+        name: t.name,
+        description: t.description,
+        price: t.price,
+        unit: t.unit,
+        features: t.features,
+        popular: t.popular ?? false,
+      }));
+
+  return (
     <section className="section-padding bg-background">
       <div className="container-narrow">
-        <motion.div
-          className="text-center max-w-3xl mx-auto mb-16"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.1 } },
-          }}
-        >
-          <motion.div
-            variants={fadeUp}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4"
-          >
+        <ScrollReveal className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">
             {pricingPage.badge}
-          </motion.div>
-          <motion.h1
-            variants={fadeUp}
-            className="text-4xl md:text-5xl font-extrabold mb-6"
-          >
+          </div>
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
             {pricingPage.heading}
-          </motion.h1>
-          <motion.p variants={fadeUp} className="text-lg text-muted-foreground">
+          </h2>
+          <p className="text-muted-foreground text-lg">
             {pricingPage.subheading}
-          </motion.p>
-        </motion.div>
+          </p>
+        </ScrollReveal>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {pricingTiers.map((t, i) => (
+          {items.map((t, i) => (
             <motion.div
-              key={t.name}
+              key={t.id}
               custom={i}
               variants={cardVariant}
               initial="hidden"
@@ -75,8 +80,9 @@ const Pricing = () => (
                 </div>
               )}
               <h3 className="font-bold text-xl mb-2">{t.name}</h3>
-              <p className="text-sm text-muted-foreground mb-4">{t.desc}</p>
-              <div className="text-3xl font-extrabold mb-6">{t.price}</div>
+              {t.description && <p className="text-sm text-muted-foreground mb-4">{t.description}</p>}
+              <div className="text-3xl font-extrabold mb-1">{t.price}</div>
+              <p className="text-sm text-muted-foreground mb-6">{t.unit}</p>
               <ul className="space-y-3 mb-8">
                 {t.features.map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm">
@@ -96,11 +102,18 @@ const Pricing = () => (
             </motion.div>
           ))}
         </div>
+
+        <ScrollReveal className="text-center mt-8">
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            View full pricing details <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </ScrollReveal>
       </div>
     </section>
-    <CTABanner />
-    <FAQSection />
-  </Layout>
-);
+  );
+};
 
-export default Pricing;
+export default PricingSection;

@@ -10,8 +10,10 @@ import {
   Wrench,
   Building2,
   Tag,
+  DollarSign,
   FolderOpen,
   MessageSquare,
+  HelpCircle,
   LogOut,
   ExternalLink,
   UserCircle,
@@ -55,6 +57,7 @@ const navItems: NavItem[] = [
     permission: "industries",
   },
   { label: "Brands", href: "/admin/brands", icon: Tag, permission: "brands" },
+  { label: "Pricing", href: "/admin/pricing", icon: DollarSign, permission: "admin_only" },
   // { label: "Projects",     href: "/admin/projects",     icon: FolderOpen,    permission: "projects" },
   {
     label: "Locations",
@@ -67,6 +70,12 @@ const navItems: NavItem[] = [
     href: "/admin/testimonials",
     icon: MessageSquare,
     permission: "testimonials",
+  },
+  {
+    label: "FAQs",
+    href: "/admin/faqs",
+    icon: HelpCircle,
+    permission: "admin_only",
   },
   {
     label: "Employee Portal",

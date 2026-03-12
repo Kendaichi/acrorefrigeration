@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   FileText, Wrench, Building2, Tag, MessageSquare,
-  MapPin, CheckCircle, Circle, ArrowRight, Settings,
+  MapPin, CheckCircle, Circle, ArrowRight, Settings, DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 export const dynamic = "force-dynamic";
 
 async function getSectionCounts(supabase: SupabaseClient) {
-  const [posts, services, industries, brands, testimonials, cities, faqs] = await Promise.all([
+  const [posts, services, industries, brands, testimonials, cities, faqs, pricing] = await Promise.all([
     supabase.from("posts").select("*", { count: "exact", head: true }).eq("published", true),
     supabase.from("services").select("*", { count: "exact", head: true }),
     supabase.from("industries").select("*", { count: "exact", head: true }),
@@ -19,6 +19,7 @@ async function getSectionCounts(supabase: SupabaseClient) {
     supabase.from("testimonials").select("*", { count: "exact", head: true }),
     supabase.from("location_cities").select("*", { count: "exact", head: true }),
     supabase.from("faqs").select("*", { count: "exact", head: true }),
+    supabase.from("pricing_tiers").select("*", { count: "exact", head: true }),
   ]);
   return {
     posts: posts.count ?? 0,
@@ -28,6 +29,7 @@ async function getSectionCounts(supabase: SupabaseClient) {
     testimonials: testimonials.count ?? 0,
     cities: cities.count ?? 0,
     faqs: faqs.count ?? 0,
+    pricing: pricing.count ?? 0,
   };
 }
 
@@ -40,7 +42,8 @@ export default async function AdminHomePage() {
     { label: "Brands Section",  icon: Tag,          href: "/admin/brands",       count: counts.brands,      desc: "Featured brands shown on home page" },
     { label: "Testimonials",    icon: MessageSquare, href: "/admin/testimonials", count: counts.testimonials, desc: "Client testimonials carousel" },
     { label: "Locations",       icon: MapPin,        href: "/admin/locations",   count: counts.cities,      desc: "Service area cities" },
-    { label: "FAQs",            icon: FileText,      href: "/admin/settings#faqs", count: counts.faqs,      desc: "FAQ accordion on home page" },
+    { label: "FAQs",            icon: FileText,      href: "/admin/faqs",          count: counts.faqs,      desc: "FAQ accordion on home page" },
+    { label: "Pricing",         icon: DollarSign,    href: "/admin/pricing",       count: counts.pricing,   desc: "Pricing tiers on /pricing page" },
   ];
 
   const staticSections = [

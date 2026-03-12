@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { contactPage, contactDetails, serviceOptions } from "@/data/contact";
+import type { SiteSettings } from "@/lib/supabase/content";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 30 },
@@ -28,7 +29,19 @@ const slideRight: Variants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
-const Contact = () => (
+function formatPhone(raw: string) {
+  return raw.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3");
+}
+
+const Contact = ({ settings }: { settings?: SiteSettings | null }) => {
+  const phone        = settings?.phone         ?? contactDetails.phone;
+  const phoneDisplay = formatPhone(phone);
+  const email        = settings?.email         ?? contactDetails.email;
+  const address      = settings?.address       ?? contactDetails.location;
+  const hours        = settings?.business_hours ?? contactDetails.hours;
+  const emergency    = settings?.emergency_text ?? contactDetails.emergency;
+
+  return (
   <Layout>
     
     <section className="section-padding bg-background">
@@ -49,8 +62,8 @@ const Contact = () => (
             </p>
           </div>
           <Button asChild size="lg" variant="secondary" className="shrink-0">
-            <a href={`tel:${contactDetails.phone}`}>
-              <Phone className="w-4 h-4 mr-2" /> {contactDetails.phoneDisplay}
+            <a href={`tel:${phone}`}>
+              <Phone className="w-4 h-4 mr-2" /> {phoneDisplay}
             </a>
           </Button>
         </motion.div>
@@ -87,10 +100,10 @@ const Contact = () => (
                 <div>
                   <div className="font-semibold mb-1">24/7 Emergency Line</div>
                   <a
-                    href={`tel:${contactDetails.phone}`}
+                    href={`tel:${phone}`}
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    {contactDetails.phoneDisplay}
+                    {phoneDisplay}
                   </a>
                 </div>
               </motion.div>
@@ -104,10 +117,10 @@ const Contact = () => (
                 <div>
                   <div className="font-semibold mb-1">Email</div>
                   <a
-                    href={`mailto:${contactDetails.email}`}
+                    href={`mailto:${email}`}
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    {contactDetails.email}
+                    {email}
                   </a>
                 </div>
               </motion.div>
@@ -121,7 +134,7 @@ const Contact = () => (
                 <div>
                   <div className="font-semibold mb-1">Location</div>
                   <p className="text-muted-foreground">
-                    {contactDetails.location}
+                    {address}
                   </p>
                 </div>
               </motion.div>
@@ -135,10 +148,10 @@ const Contact = () => (
                 <div>
                   <div className="font-semibold mb-1">Business Hours</div>
                   <p className="text-muted-foreground">
-                    {contactDetails.hours}
+                    {hours}
                   </p>
                   <p className="text-sm text-primary font-semibold">
-                    {contactDetails.emergency}
+                    {emergency}
                   </p>
                 </div>
               </motion.div>
@@ -210,6 +223,7 @@ const Contact = () => (
       </div>
     </section>
   </Layout>
-);
+  );
+};
 
 export default Contact;

@@ -26,6 +26,7 @@ const ClientsSection = dynamic(
 const LocationsSection = dynamic(
   () => import("@/components/home/LocationsSection")
 );
+const PricingSection = dynamic(() => import("@/components/home/PricingSection"));
 const CTABanner = dynamic(() => import("@/components/home/CTABanner"));
 const FAQSection = dynamic(() => import("@/components/home/FAQSection"), { ssr: false });
 
@@ -42,6 +43,7 @@ const Index = () => (
     <Testimonials />
     <ClientsSection />
     <LocationsSection />
+    <PricingSection />
     <CTABanner />
     <FAQSection />
   </Layout>

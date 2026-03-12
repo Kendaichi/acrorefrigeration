@@ -238,6 +238,7 @@ export default function PostEditor({ post }: { post?: Post }) {
       setServerError(
         e instanceof Error ? e.message : "Something went wrong. Please try again."
       );
+    } finally {
       setSaving(false);
     }
   };

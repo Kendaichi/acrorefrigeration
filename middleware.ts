@@ -32,19 +32,19 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isLoginPath = pathname === "/admin/login";
 
-  // Not logged in → redirect to login
-  if (!user && !isLoginPath) {
+  const redirect = (dest: string) => {
     const url = request.nextUrl.clone();
-    url.pathname = "/admin/login";
-    return NextResponse.redirect(url);
-  }
+    url.pathname = dest;
+    const res = NextResponse.redirect(url);
+    res.headers.set("x-pathname", dest);
+    return res;
+  };
 
-  // Logged in + on login page → redirect to admin
-  if (user && isLoginPath) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/admin/home";
-    return NextResponse.redirect(url);
-  }
+  // Not logged in → redirect to login
+  if (!user && !isLoginPath) return redirect("/admin/login");
+
+  // Logged in + on login page → redirect to admin home
+  if (user && isLoginPath) return redirect("/admin/home");
 
   // Logged in — check role-based access
   if (user && !isLoginPath) {
@@ -56,16 +56,14 @@ export async function middleware(request: NextRequest) {
 
     const userProfile = profile as UserProfile | null;
 
-    // No profile yet → treat as admin (first-time setup) except for /admin/users
+    // No profile yet → treat as admin (first-time setup)
     if (!userProfile) {
+      supabaseResponse.headers.set("x-pathname", pathname);
       return supabaseResponse;
     }
 
     if (!canAccess(userProfile, pathname)) {
-      // Employee hitting admin-only or unpermitted page → send to profile
-      const url = request.nextUrl.clone();
-      url.pathname = "/admin/profile";
-      return NextResponse.redirect(url);
+      return redirect("/admin/profile");
     }
   }
 

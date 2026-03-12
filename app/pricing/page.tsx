@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import Pricing from "@/components/pages/Pricing";
+import CTABanner from "@/components/home/CTABanner";
+import FAQSection from "@/components/home/FAQSection";
+import Layout from "@/components/Layout";
+import { createClient } from "@/lib/supabase/server";
+import { getAllPricingTiers } from "@/lib/supabase/content";
+import PricingCards from "./PricingCards";
+
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Commercial Refrigeration Pricing",
@@ -9,6 +16,19 @@ export const metadata: Metadata = {
   openGraph: { url: "https://acrorefrigeration.com.au/pricing" },
 };
 
-export default function PricingPage() {
-  return <Pricing />;
+export default async function PricingPage() {
+  const supabase = await createClient();
+  const tiers = await getAllPricingTiers(supabase);
+
+  return (
+    <Layout>
+      <section className="section-padding bg-background">
+        <div className="container-narrow">
+          <PricingCards tiers={tiers} />
+        </div>
+      </section>
+      <CTABanner />
+      <FAQSection />
+    </Layout>
+  );
 }

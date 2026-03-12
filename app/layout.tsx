@@ -4,6 +4,8 @@ import "./globals.css";
 import { headers } from "next/headers";
 import { Providers } from "@/components/providers";
 import Navbar from "@/components/Navbar";
+import { createClient } from "@/lib/supabase/server";
+import { getSiteSettings } from "@/lib/supabase/content";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
 import NavigationProgress from "@/components/NavigationProgress";
@@ -49,6 +51,10 @@ export default async function RootLayout({
   const pathname = headersList.get("x-pathname") ?? "";
   const isAdmin = pathname.startsWith("/admin");
 
+  const supabase = await createClient();
+  const settings = isAdmin ? null : await getSiteSettings(supabase);
+  const phone = settings?.phone ?? "1300227600";
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${playfair.variable} antialiased`} suppressHydrationWarning>
@@ -56,7 +62,7 @@ export default async function RootLayout({
           {!isAdmin && <LoadingScreen />}
           {!isAdmin && <NavigationProgress />}
           <div className="min-h-screen flex flex-col">
-            {!isAdmin && <Navbar />}
+            {!isAdmin && <Navbar phone={phone} />}
             <main className={isAdmin ? "flex-1" : "flex-1 pt-16 md:pt-20"}>{children}</main>
             {!isAdmin && <Footer />}
           </div>

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusCircle, Trash2, Phone, Mail, MapPin, Globe, Building2 } from "lucide-react";
+import { PlusCircle, Trash2, Phone, Mail, MapPin, Globe, Building2, Clock } from "lucide-react";
 import { logActivity } from "@/lib/supabase/logging";
 
 const schema = z.object({
@@ -23,6 +23,8 @@ const schema = z.object({
   facebook_url: z.string(),
   linkedin_url: z.string(),
   instagram_url: z.string(),
+  business_hours: z.string().min(1, "Required"),
+  emergency_text: z.string().min(1, "Required"),
   footer_company_links: z.array(z.object({
     label: z.string().min(1),
     href:  z.string().min(1),
@@ -56,6 +58,8 @@ export default function SettingsClient({ settings }: { settings: SiteSettings | 
       facebook_url:  settings?.facebook_url  ?? "",
       linkedin_url:  settings?.linkedin_url  ?? "",
       instagram_url: settings?.instagram_url ?? "",
+      business_hours: settings?.business_hours ?? "Mon–Fri: 7am – 5pm AEST",
+      emergency_text: settings?.emergency_text ?? "24/7 Emergency Service Available",
       footer_company_links: (settings?.footer_company_links as any[]) ?? DEFAULT_LINKS,
     },
   });
@@ -151,6 +155,26 @@ export default function SettingsClient({ settings }: { settings: SiteSettings | 
           <div className="space-y-1.5">
             <Label>Instagram URL <span className="text-muted-foreground font-normal text-xs">(optional)</span></Label>
             <Input {...register("instagram_url")} placeholder="https://www.instagram.com/yourpage/" />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Business Hours ───────────────────────────────────────────────── */}
+      <section className="space-y-4">
+        <h2 className="text-base font-semibold border-b border-border pb-2 flex items-center gap-2">
+          <Clock className="w-4 h-4" /> Business Hours
+        </h2>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Hours</Label>
+            <Input {...register("business_hours")} placeholder="Mon–Fri: 7am – 5pm AEST" />
+            {errors.business_hours && <p className="text-xs text-destructive">{errors.business_hours.message}</p>}
+            <p className="text-xs text-muted-foreground">Shown on the contact page and footer.</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Emergency Text</Label>
+            <Input {...register("emergency_text")} placeholder="24/7 Emergency Service Available" />
+            {errors.emergency_text && <p className="text-xs text-destructive">{errors.emergency_text.message}</p>}
           </div>
         </div>
       </section>
