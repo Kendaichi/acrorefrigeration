@@ -36,81 +36,46 @@ type NavItem = {
   permission?: PermissionKey | "admin_only";
 };
 
-const navItems: NavItem[] = [
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
   {
-    label: "Home Page",
-    href: "/admin/home",
-    icon: Home,
-    permission: "admin_only",
-  },
-  { label: "Posts", href: "/admin/posts", icon: FileText, permission: "posts" },
-  {
-    label: "Services",
-    href: "/admin/services",
-    icon: Wrench,
-    permission: "services",
-  },
-  {
-    label: "Industries",
-    href: "/admin/industries",
-    icon: Building2,
-    permission: "industries",
-  },
-  { label: "Brands", href: "/admin/brands", icon: Tag, permission: "brands" },
-  { label: "Pricing", href: "/admin/pricing", icon: DollarSign, permission: "admin_only" },
-  // { label: "Projects",     href: "/admin/projects",     icon: FolderOpen,    permission: "projects" },
-  {
-    label: "Locations",
-    href: "/admin/locations",
-    icon: MapPin,
-    permission: "locations",
+    label: "Content",
+    items: [
+      { label: "Home Page",   href: "/admin/home",       icon: Home,      permission: "admin_only" },
+      { label: "Posts",       href: "/admin/posts",      icon: FileText,  permission: "posts" },
+      { label: "Services",    href: "/admin/services",   icon: Wrench,    permission: "services" },
+      { label: "Industries",  href: "/admin/industries", icon: Building2, permission: "industries" },
+      { label: "Brands",      href: "/admin/brands",     icon: Tag,       permission: "brands" },
+      { label: "Locations",   href: "/admin/locations",  icon: MapPin,    permission: "locations" },
+    ],
   },
   {
-    label: "Testimonials",
-    href: "/admin/testimonials",
-    icon: MessageSquare,
-    permission: "testimonials",
+    label: "Engage",
+    items: [
+      { label: "Pricing",      href: "/admin/pricing",      icon: DollarSign,  permission: "admin_only" },
+      { label: "Testimonials", href: "/admin/testimonials", icon: MessageSquare, permission: "testimonials" },
+      { label: "FAQs",         href: "/admin/faqs",         icon: HelpCircle,  permission: "admin_only" },
+    ],
   },
   {
-    label: "FAQs",
-    href: "/admin/faqs",
-    icon: HelpCircle,
-    permission: "admin_only",
+    label: "People",
+    items: [
+      { label: "Employee Portal", href: "/admin/portal", icon: BookMarked },
+      { label: "Users",           href: "/admin/users",  icon: Users, permission: "admin_only" },
+    ],
   },
   {
-    label: "Legal Pages",
-    href: "/admin/legal",
-    icon: FileText,
-    permission: "admin_only",
-  },
-  {
-    label: "Employee Portal",
-    href: "/admin/portal",
-    icon: BookMarked,
-  },
-  {
-    label: "Users",
-    href: "/admin/users",
-    icon: Users,
-    permission: "admin_only",
-  },
-  {
-    label: "Settings",
-    href: "/admin/settings",
-    icon: SlidersHorizontal,
-    permission: "admin_only",
-  },
-  {
-    label: "Logs",
-    href: "/admin/logs",
-    icon: ScrollText,
-    permission: "admin_only",
-  },
-  {
-    label: "Maintenance",
-    href: "/admin/maintenance",
-    icon: Settings2,
-    permission: "admin_only",
+    label: "Admin",
+    items: [
+      { label: "Legal Pages",  href: "/admin/legal",        icon: ScrollText,      permission: "admin_only" },
+      { label: "Settings",     href: "/admin/settings",     icon: SlidersHorizontal, permission: "admin_only" },
+      { label: "Logs",         href: "/admin/logs",         icon: FileText,        permission: "admin_only" },
+      { label: "Maintenance",  href: "/admin/maintenance",  icon: Settings2,       permission: "admin_only" },
+    ],
   },
 ];
 
@@ -119,6 +84,15 @@ function canSeeItem(item: NavItem, profile: UserProfile): boolean {
   if (item.permission === "admin_only") return false;
   if (!item.permission) return true;
   return profile.permissions.includes(item.permission);
+}
+
+function visibleGroups(profile: UserProfile): NavGroup[] {
+  return navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => canSeeItem(item, profile)),
+    }))
+    .filter((group) => group.items.length > 0);
 }
 
 export default function AdminSidebar({
@@ -137,7 +111,7 @@ export default function AdminSidebar({
     router.refresh();
   };
 
-  const visibleItems = navItems.filter((item) => canSeeItem(item, profile));
+  const groups = visibleGroups(profile);
 
   return (
     <aside className="fixed inset-y-0 left-0 w-60 bg-zinc-950 flex flex-col z-40">
@@ -161,24 +135,33 @@ export default function AdminSidebar({
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {visibleItems.map(({ label, href, icon: Icon }) => {
-          const active = pathname.startsWith(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                active
-                  ? "bg-primary text-white"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
-              }`}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              {label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-4">
+        {groups.map((group) => (
+          <div key={group.label}>
+            <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+              {group.label}
+            </p>
+            <div className="space-y-0.5">
+              {group.items.map(({ label, href, icon: Icon }) => {
+                const active = pathname.startsWith(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-primary text-white"
+                        : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Footer */}
