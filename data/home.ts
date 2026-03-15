@@ -12,6 +12,7 @@ import {
   Zap,
   Wifi,
   Bell,
+  Award,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -194,6 +195,120 @@ export const capabilitiesGrid = {
       desc: "SMS and email alerts when temperatures deviate — so you know before your stock is at risk.",
     },
   ] as Capability[],
+};
+
+// ─── Workmanship Guarantee ────────────────────────────────────────────────────
+
+export interface GuaranteeTrustCard {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+}
+
+export interface ComparisonRow {
+  label: string;
+  value: string;
+  type?: "normal" | "negative" | "positive";
+}
+
+export interface ComparisonColumn {
+  heading: string;
+  rows: ComparisonRow[];
+}
+
+export const workmanshipGuarantee = {
+  heading: "Backed by a 5-Year Workmanship Guarantee",
+  subheading:
+    "Most contractors walk away after the job. We stay accountable for five full years.",
+  bodyCopy:
+    "At Acro Refrigeration, every installation and repair is backed by our 5-Year Workmanship Guarantee — covering the quality of our labour, not just the parts. If a fault arises from how our technicians performed the work, we return and fix it at zero labour cost to you. No blame-shifting. No grey areas.",
+  highlights: [
+    "Installation errors and incorrect fittings",
+    "Faulty or unsafe wiring and refrigerant connections",
+    "Incorrect refrigerant charging",
+    "Any fault directly caused by our workmanship",
+    "Site attendance and technician time to diagnose and rectify",
+    "Reinstallation where poor workmanship is identified",
+  ],
+  note: "This guarantee applies to labour only and is separate from — and in addition to — the manufacturer's warranty on parts and equipment.",
+  comparison: {
+    col1: {
+      heading: "Manufacturer's Warranty",
+      rows: [
+        { label: "Covers", value: "Parts & components" },
+        { label: "Covers", value: "Factory defects" },
+        { label: "Duration", value: "Typically 1–5 years" },
+        {
+          label: "Does NOT cover",
+          value: "Installation errors",
+          type: "negative",
+        },
+      ],
+    } as ComparisonColumn,
+    col2: {
+      heading: "Acro Workmanship Guarantee",
+      rows: [
+        { label: "Covers", value: "Labour & installation quality" },
+        { label: "Covers", value: "Workmanship faults" },
+        { label: "Duration", value: "5 full years" },
+        {
+          label: "ALSO includes",
+          value: "Compliance documentation",
+          type: "positive",
+        },
+      ],
+    } as ComparisonColumn,
+  },
+  trustCards: [
+    {
+      icon: Shield,
+      title: "5-Year Labour Guarantee",
+      desc: "We cover the cost of returning and fixing any fault caused by our workmanship for five full years.",
+    },
+    {
+      icon: ClipboardList,
+      title: "Compliance Confidence™",
+      desc: "All work meets Australian standards and is fully documented for HACCP and TGA audit readiness.",
+    },
+    {
+      icon: Clock,
+      title: "24/7 Rapid Response",
+      desc: "Emergency jobs attended within 2 hours — speak to a real technician, not a call centre.",
+    },
+    {
+      icon: Award,
+      title: "Licensed & Veteran-Owned",
+      desc: "Built on the values of discipline, service, and doing the job right the first time.",
+    },
+  ] as GuaranteeTrustCard[],
+  cta: {
+    primary: { label: "Book a Free Compliance Audit", href: "/contact" },
+    secondary: {
+      label: "Read the full guarantee terms",
+      href: "/acro-refrigeration-5-year-workmanship-guarantee",
+    },
+    finePrint:
+      "Effective 1 June 2025. Applies to all labour performed by Acro Refrigeration technicians. Terms and conditions apply.",
+  },
+  blogStrip: {
+    prefix: "WANT TO KNOW MORE?",
+    headline:
+      "We've written the full breakdown so you know exactly what you're covered for.",
+    links: [
+      {
+        label: "Why Our Guarantee Gives You Total Peace of Mind",
+        href: "/resources/5-year-workmanship-guarantee",
+      },
+      {
+        label: "Warranty vs. Workmanship — What's the Difference?",
+        href: "/resources/refrigeration-warranty-vs-workmanship-guarantee",
+      },
+      {
+        label: "Read the Official Guarantee Terms",
+        href: "/acro-refrigeration-5-year-workmanship-guarantee",
+      },
+    ],
+  },
 };
 
 // ─── Process Timeline ─────────────────────────────────────────────────────────

@@ -19,7 +19,7 @@ export interface LegalPage {
 
 export async function getLegalPage(
   supabase: SupabaseClient,
-  type: "terms" | "privacy"
+  type: "terms" | "privacy" | "guarantee"
 ): Promise<LegalPage | null> {
   const { data, error } = await supabase
     .from("legal_pages")

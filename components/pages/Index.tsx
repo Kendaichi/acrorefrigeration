@@ -15,6 +15,9 @@ const SolutionSection = dynamic(
 const CapabilitiesGrid = dynamic(
   () => import("@/components/home/CapabilitiesGrid")
 );
+const WorkmanshipGuarantee = dynamic(
+  () => import("@/components/home/WorkmanshipGuarantee")
+);
 const ProcessTimeline = dynamic(
   () => import("@/components/home/ProcessTimeline")
 );
@@ -47,6 +50,7 @@ const Index = ({ faqItems, reviewItems, pricingTiers }: IndexProps) => (
     <ProblemSection />
     <SolutionSection />
     <CapabilitiesGrid />
+    <WorkmanshipGuarantee />
     <ProcessTimeline />
     <IndustryCards />
     <BrandsSection />
