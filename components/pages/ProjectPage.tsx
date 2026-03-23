@@ -193,7 +193,7 @@ const ProjectPage = ({ project, related }: { project: Project; related: Project[
                     <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">
                       {p.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">{p.desc}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">{p.description}</p>
                     <span className="text-primary text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
                       View Project <ArrowRight className="w-4 h-4" />
                     </span>
