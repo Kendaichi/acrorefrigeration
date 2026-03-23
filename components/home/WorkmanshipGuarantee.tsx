@@ -1,14 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ScrollReveal from "@/components/ScrollReveal";
 import { workmanshipGuarantee } from "@/data/home";
+import guaranteeBadge from "@/assets/5-year-workmanship.png";
 
 const WorkmanshipGuarantee = () => {
-  const { heading, subheading, bodyCopy, highlights, note, comparison, trustCards, cta, blogStrip } =
-    workmanshipGuarantee;
+  const {
+    heading,
+    subheading,
+    bodyCopy,
+    highlights,
+    note,
+    comparison,
+    trustCards,
+    cta,
+    blogStrip,
+  } = workmanshipGuarantee;
 
   return (
     <section
@@ -16,20 +27,25 @@ const WorkmanshipGuarantee = () => {
       aria-label="5-Year Workmanship Guarantee by Acro Refrigeration"
     >
       <div className="container-narrow">
-
-        {/* ── Header ─────────────────────────────────────────────────────── */}
-        <ScrollReveal className="text-center mb-8 max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-3">
-            {heading}
-          </h2>
-          <h3 className="text-lg font-semibold text-muted-foreground">
-            {subheading}
-          </h3>
+        {/* ── Badge + Header ─────────────────────────────────────────────── */}
+        <ScrollReveal className="flex flex-col sm:flex-row items-center gap-6 mb-10">
+          <Image
+            src={guaranteeBadge}
+            alt="5 Years Workmanship Guarantee"
+            className="w-32 md:w-40 h-auto drop-shadow-xl shrink-0"
+          />
+          <div>
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-3">
+              {heading}
+            </h2>
+            <h3 className="text-lg font-semibold text-muted-foreground">
+              {subheading}
+            </h3>
+          </div>
         </ScrollReveal>
 
         {/* ── Body + Highlights (left) · Comparison (right) ──────────────── */}
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
-
           {/* Left column */}
           <ScrollReveal className="flex flex-col gap-5">
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -56,7 +72,6 @@ const WorkmanshipGuarantee = () => {
           {/* Right column — Comparison table */}
           <ScrollReveal>
             <div className="rounded-2xl border border-border overflow-hidden shadow-sm h-full">
-
               {/* Header row */}
               <div className="grid grid-cols-2 text-xs font-bold">
                 <div className="px-4 py-3 text-center border-r border-border bg-card">
@@ -118,7 +133,6 @@ const WorkmanshipGuarantee = () => {
                   </div>
                 );
               })}
-
             </div>
           </ScrollReveal>
         </div>
@@ -150,7 +164,9 @@ const WorkmanshipGuarantee = () => {
               <Link href={cta.primary.href}>{cta.primary.label}</Link>
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground/70 mb-5">{cta.finePrint}</p>
+          <p className="text-xs text-muted-foreground/70 mb-5">
+            {cta.finePrint}
+          </p>
 
           {/* ── Blog Callout Strip ──────────────────────────────────── */}
           <div className="border border-border bg-card rounded-xl px-5 py-4 max-w-3xl mx-auto text-left">
@@ -183,9 +199,7 @@ const WorkmanshipGuarantee = () => {
               </ul>
             </nav>
           </div>
-
         </ScrollReveal>
-
       </div>
     </section>
   );
