@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!project) return {};
   return {
     title: `${project.title} — Case Study`,
-    description: project.desc,
+    description: project.description,
     alternates: { canonical: `https://acrorefrigeration.com.au/projects/${slug}` },
     openGraph: {
       url: `https://acrorefrigeration.com.au/projects/${slug}`,
