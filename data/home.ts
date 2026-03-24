@@ -221,16 +221,16 @@ export const workmanshipGuarantee = {
   subheading:
     "Most contractors walk away after the job. We stay accountable for five full years.",
   bodyCopy:
-    "At Acro Refrigeration, every installation and repair is backed by our 5-Year Workmanship Guarantee — covering the quality of our labour, not just the parts. If a fault arises from how our technicians performed the work, we return and fix it at zero labour cost to you. No blame-shifting. No grey areas.",
+    "At Acro Refrigeration, every installation and repair is backed by our 5-Year Workmanship Guarantee — covering the quality of our labour. If a fault arises directly from our workmanship, we return and rectify it at no labour cost. No blame-shifting. No grey areas.",
   highlights: [
-    "Installation errors and incorrect fittings",
-    "Faulty or unsafe wiring and refrigerant connections",
-    "Incorrect refrigerant charging",
-    "Any fault directly caused by our workmanship",
-    "Site attendance and technician time to diagnose and rectify",
-    "Reinstallation where poor workmanship is identified",
+    "Installation errors directly cause by our workmanship",
+    "Faults arising from incorrect installation or non-compliant work",
+    "Labour to diagnose and rectify workmanship-related faults",
+    "Any fault proven to be directly caused by our workmanship",
+    "Site attendance and technician time required to rectify workmanship faults",
+    "Reinstallation or repair where a workmanship defect is confirmed",
   ],
-  note: "This guarantee applies to labour only and is separate from — and in addition to — the manufacturer's warranty on parts and equipment.",
+  note: "This guarantee applies only to faults directly caused by our workmanship only. It does not extend to equipment failure, external factors, or general system faults. For full terms and conditions, please refer to our official guarantee documentation.",
   comparison: {
     col1: {
       heading: "Manufacturer's Warranty",
@@ -252,8 +252,8 @@ export const workmanshipGuarantee = {
         { label: "Covers", value: "Workmanship faults" },
         { label: "Duration", value: "5 full years" },
         {
-          label: "ALSO includes",
-          value: "Compliance documentation",
+          label: "ALSO supported",
+          value: "by Compliance documentation",
           type: "positive",
         },
       ],
@@ -263,12 +263,12 @@ export const workmanshipGuarantee = {
     {
       icon: Shield,
       title: "5-Year Labour Guarantee",
-      desc: "We cover the cost of returning and fixing any fault caused by our workmanship for five full years.",
+      desc: "We cover labour to return and rectify faults directly caused by our workmanship for five full years after the job.",
     },
     {
       icon: ClipboardList,
       title: "Compliance Confidence™",
-      desc: "All work meets Australian standards and is fully documented for HACCP and TGA audit readiness.",
+      desc: "All work is carried out to applicable Australian standards and is fully documented for HACCP and TGA audit readiness.",
     },
     {
       icon: Clock,
