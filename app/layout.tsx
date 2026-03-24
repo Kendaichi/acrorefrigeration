@@ -9,6 +9,7 @@ import { getSiteSettings } from "@/lib/supabase/content";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
 import NavigationProgress from "@/components/NavigationProgress";
+import PublicShell from "@/components/PublicShell";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -70,8 +71,8 @@ export default async function RootLayout({
         <Providers>
           {!isAdmin && <LoadingScreen />}
           <NavigationProgress />
-          <div className="min-h-screen flex flex-col">
-            {!isAdmin && (
+          <PublicShell
+            navbar={
               <Navbar
                 phone={phone}
                 serviceItems={navServices as {slug:string; title:string}[]}
@@ -79,10 +80,11 @@ export default async function RootLayout({
                 brandItems={navBrands as {slug:string; title:string}[]}
                 cityItems={navCities as {slug:string; title:string}[]}
               />
-            )}
-            <main className={isAdmin ? "flex-1" : "flex-1 pt-16 md:pt-20"}>{children}</main>
-            {!isAdmin && <Footer />}
-          </div>
+            }
+            footer={<Footer />}
+          >
+            {children}
+          </PublicShell>
         </Providers>
       </body>
     </html>
