@@ -199,108 +199,68 @@ export const capabilitiesGrid = {
 
 // ─── Workmanship Guarantee ────────────────────────────────────────────────────
 
-export interface GuaranteeTrustCard {
-  icon: LucideIcon;
-  title: string;
-  desc: string;
-}
-
-export interface ComparisonRow {
-  label: string;
-  value: string;
-  type?: "normal" | "negative" | "positive";
-}
-
-export interface ComparisonColumn {
-  heading: string;
-  rows: ComparisonRow[];
-}
-
 export const workmanshipGuarantee = {
   heading: "Backed by a 5-Year Workmanship Guarantee",
-  subheading:
-    "Most contractors walk away after the job. We stay accountable for five full years.",
-  bodyCopy:
-    "At Acro Refrigeration, every installation and repair is backed by our 5-Year Workmanship Guarantee — covering the quality of our labour. If a fault arises directly from our workmanship, we return and rectify it at no labour cost. No blame-shifting. No grey areas.",
-  highlights: [
-    "Installation errors directly cause by our workmanship",
-    "Faults arising from incorrect installation or non-compliant work",
-    "Labour to diagnose and rectify workmanship-related faults",
-    "Any fault proven to be directly caused by our workmanship",
-    "Site attendance and technician time required to rectify workmanship faults",
-    "Reinstallation or repair where a workmanship defect is confirmed",
+  subheading: "Most contractors move on once the job is done. We don’t.",
+  bodyCopy: [
+    "At Acro Refrigeration, the specific installation and repair work performed by our technicians is backed by our 5-Year Workmanship Guarantee.",
+    "Where defective workmanship is confirmed in the specific work performed by Acro Refrigeration, we return and rectify that workmanship at no labour cost.",
+    "This guarantee applies only to the specific work performed by Acro Refrigeration. It does not extend beyond that scope.",
   ],
-  note: "This guarantee applies only to faults directly caused by our workmanship only. It does not extend to equipment failure, external factors, or general system faults. For full terms and conditions, please refer to our official guarantee documentation.",
-  comparison: {
-    col1: {
-      heading: "Manufacturer's Warranty",
-      rows: [
-        { label: "Covers", value: "Parts & components" },
-        { label: "Covers", value: "Factory defects" },
-        { label: "Duration", value: "Typically 1–5 years" },
-        {
-          label: "Does NOT cover",
-          value: "Installation errors",
-          type: "negative",
-        },
-      ],
-    } as ComparisonColumn,
-    col2: {
-      heading: "Acro Workmanship Guarantee",
-      rows: [
-        { label: "Covers", value: "Labour & installation quality" },
-        { label: "Covers", value: "Workmanship faults" },
-        { label: "Duration", value: "5 full years" },
-        {
-          label: "ALSO supported",
-          value: "by Compliance documentation",
-          type: "positive",
-        },
-      ],
-    } as ComparisonColumn,
+  covered: {
+    title: "What’s Covered",
+    items: [
+      "Defective workmanship in the specific installation or repair work performed by Acro Refrigeration",
+      "Labour to inspect and determine whether an issue relates to our workmanship",
+      "Labour to rectify confirmed defective workmanship in the work we carried out",
+      "Return attendance required to rectify confirmed defective workmanship in our work",
+    ],
   },
-  trustCards: [
-    {
-      icon: Shield,
-      title: "5-Year Labour Guarantee",
-      desc: "We cover labour to return and rectify faults directly caused by our workmanship for five full years after the job.",
-    },
-    {
-      icon: ClipboardList,
-      title: "Compliance Confidence™",
-      desc: "All work is carried out to applicable Australian standards and is fully documented for HACCP and TGA audit readiness.",
-    },
-    {
-      icon: Clock,
-      title: "24/7 Rapid Response",
-      desc: "Emergency jobs attended within 2 hours — speak to a real technician, not a call centre.",
-    },
-    {
-      icon: Award,
-      title: "Licensed & Veteran-Owned",
-      desc: "Built on the values of discipline, service, and doing the job right the first time.",
-    },
-  ] as GuaranteeTrustCard[],
+  labourGuarantee: {
+    title: "5-Year Labour Guarantee",
+    body: "We cover the labour required to rectify confirmed defective workmanship in the specific work performed by Acro Refrigeration, for five full years from completion.",
+  },
+  meansForYou: {
+    title: "What This Means for You",
+    items: [
+      "You won’t pay again to rectify confirmed defective workmanship in the specific work performed by Acro Refrigeration",
+      "The workmanship in the work we perform is backed for five full years from completion",
+      "You’re dealing with a contractor that stands behind the specific work it performs",
+    ],
+  },
+  notCovered: {
+    title: "What’s Not Covered",
+    intro: "This guarantee does not apply to:",
+    items: [
+      "Any part of a system not installed, repaired, or worked on by Acro Refrigeration",
+      "Any issue not caused by defective workmanship in the specific work performed by Acro Refrigeration",
+      "Damage caused by misuse, neglect, external factors, or third-party interference",
+      "Any issue arising after our work has been altered, adjusted, or modified by others",
+      "Equipment or systems not maintained in accordance with normal operating and maintenance requirements",
+    ],
+  },
+  accountability: {
+    title: "Built on Accountability",
+    body: "Our technicians are trained, experienced, and held to a high standard. All work is carried out in line with applicable requirements and documented appropriately. Where defective workmanship is confirmed in the specific work we performed, we rectify that workmanship.",
+  },
   cta: {
+    heading: "Need Work Done Properly the First Time?",
+    body: "If you want a contractor that stands behind the specific work it performs, Acro Refrigeration is ready to help.",
     primary: { label: "Book a Free Compliance Audit", href: "/contact" },
-    secondary: {
-      label: "Read the full guarantee terms",
-      href: "/acro-refrigeration-5-year-workmanship-guarantee",
-    },
     finePrint:
       "Effective 1 June 2025. Applies to all labour performed by Acro Refrigeration technicians. Terms and conditions apply.",
   },
   blogStrip: {
     prefix: "WANT TO KNOW MORE?",
     headline:
-      "We've written the full breakdown so you know exactly what you're covered for.",
+      "We’ve written the full breakdown so you know exactly what you’re covered for.",
     links: [
       {
         label: "Why Our Guarantee Gives You Total Peace of Mind",
         href: "/resources/5-year-workmanship-guarantee",
       },
       {
-        label: "Warranty vs. Workmanship — What's the Difference?",
+        label: "Warranty vs. Workmanship — What’s the Difference?",
         href: "/resources/refrigeration-warranty-vs-workmanship-guarantee",
       },
       {
