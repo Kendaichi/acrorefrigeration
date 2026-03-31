@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Layout from "@/components/Layout";
-import { ArrowRight, Clock, BookOpen, FileText, Video } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, BookOpen, FileText, Video } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -20,7 +20,8 @@ import {
 import { Button } from "@/components/ui/button";
 import CTABanner from "@/components/home/CTABanner";
 import { motion, Variants } from "framer-motion";
-import type { Post } from "@/lib/supabase/posts";
+import type { Post, ContentBlock } from "@/lib/supabase/posts";
+import { normalizeContent } from "@/lib/supabase/posts";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 30 },
@@ -51,12 +52,97 @@ type RelatedPost = {
   date: string;
 };
 
+function ContentBlockRenderer({ block }: { block: ContentBlock }) {
+  switch (block.type) {
+    case "paragraph":
+      return (
+        <p className="text-muted-foreground leading-relaxed">{block.text}</p>
+      );
+
+    case "image":
+      return (
+        <figure className="my-2">
+          <img
+            src={block.src}
+            alt={block.alt || ""}
+            className="w-full rounded-xl object-cover"
+          />
+          {block.caption && (
+            <figcaption className="text-xs text-muted-foreground mt-2 text-center italic">
+              {block.caption}
+            </figcaption>
+          )}
+        </figure>
+      );
+
+    case "blockquote":
+      return (
+        <blockquote className="border-l-4 border-primary/30 pl-5 py-1 my-2">
+          <p className="text-muted-foreground leading-relaxed italic">
+            &ldquo;{block.text}&rdquo;
+          </p>
+          {block.cite && (
+            <cite className="text-xs text-muted-foreground mt-1 block not-italic">
+              — {block.cite}
+            </cite>
+          )}
+        </blockquote>
+      );
+
+    case "list": {
+      const Tag = block.style === "bullet" ? "ul" : "ol";
+      const listClass =
+        block.style === "bullet"
+          ? "list-disc"
+          : block.style === "number"
+          ? "list-decimal"
+          : "list-[lower-alpha]";
+      return (
+        <Tag className={`${listClass} pl-6 space-y-1.5 text-muted-foreground leading-relaxed`}>
+          {block.items.map((item, k) => (
+            <li key={k}>{item}</li>
+          ))}
+        </Tag>
+      );
+    }
+
+    case "faq":
+      return (
+        <Accordion type="single" collapsible className="space-y-2">
+          {block.items.map((item, k) => (
+            <AccordionItem
+              key={k}
+              value={`faq-${k}`}
+              className="border border-border rounded-xl px-5 data-[state=open]:border-primary/30"
+            >
+              <AccordionTrigger className="text-sm font-semibold text-left hover:no-underline py-4">
+                {item.question}
+              </AccordionTrigger>
+              <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
+                {item.answer}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      );
+
+    default:
+      return null;
+  }
+}
+
+type PostLink = { slug: string; title: string } | null;
+
 const ResourcePage = ({
   post,
   relatedPosts,
+  prevPost,
+  nextPost,
 }: {
   post: Post;
   relatedPosts: RelatedPost[];
+  prevPost?: PostLink;
+  nextPost?: PostLink;
 }) => {
   return (
     <Layout>
@@ -134,10 +220,6 @@ const ResourcePage = ({
           <div className="max-w-3xl">
             <div className="border-t border-border pt-12 space-y-12">
               {post.post_sections?.map((section, i) => {
-                const isFaq =
-                  section.heading.toLowerCase().includes("faq") ||
-                  section.heading.toLowerCase().includes("frequently asked");
-
                 return (
                   <motion.div
                     key={section.id}
@@ -151,39 +233,11 @@ const ResourcePage = ({
                       {section.heading}
                     </h2>
 
-                    {isFaq ? (
-                      <Accordion type="single" collapsible className="space-y-2">
-                        {section.content.map((item, j) => {
-                          const qMark = item.indexOf("? ");
-                          const question =
-                            qMark !== -1 ? item.slice(0, qMark + 1) : item;
-                          const answer =
-                            qMark !== -1 ? item.slice(qMark + 2) : "";
-                          return (
-                            <AccordionItem
-                              key={j}
-                              value={`faq-${i}-${j}`}
-                              className="border border-border rounded-xl px-5 data-[state=open]:border-primary/30"
-                            >
-                              <AccordionTrigger className="text-sm font-semibold text-left hover:no-underline py-4">
-                                {question}
-                              </AccordionTrigger>
-                              <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
-                                {answer}
-                              </AccordionContent>
-                            </AccordionItem>
-                          );
-                        })}
-                      </Accordion>
-                    ) : (
-                      <div className="space-y-4">
-                        {section.content.map((para, j) => (
-                          <p key={j} className="text-muted-foreground leading-relaxed">
-                            {para}
-                          </p>
-                        ))}
-                      </div>
-                    )}
+                    <div className="space-y-4">
+                      {normalizeContent(section.content).map((block, j) => (
+                        <ContentBlockRenderer key={j} block={block} />
+                      ))}
+                    </div>
                   </motion.div>
                 );
               })}
@@ -269,6 +323,48 @@ const ResourcePage = ({
                   </Link>
                 </motion.div>
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Prev / Next navigation */}
+      {(prevPost || nextPost) && (
+        <section className="bg-background border-t border-border">
+          <div className="container-narrow py-8">
+            <div className="max-w-3xl flex items-stretch gap-4">
+              {prevPost ? (
+                <Link
+                  href={`/resources/${prevPost.slug}`}
+                  className="flex items-center gap-3 flex-1 min-w-0 group"
+                >
+                  <ArrowLeft className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:-translate-x-1 transition-all flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground mb-1">Previous Article</p>
+                    <p className="font-bold group-hover:text-primary transition-colors truncate">
+                      {prevPost.title}
+                    </p>
+                  </div>
+                </Link>
+              ) : (
+                <div className="flex-1" />
+              )}
+              {nextPost ? (
+                <Link
+                  href={`/resources/${nextPost.slug}`}
+                  className="flex items-center gap-3 flex-1 min-w-0 justify-end text-right group"
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground mb-1">Next Article</p>
+                    <p className="font-bold group-hover:text-primary transition-colors truncate">
+                      {nextPost.title}
+                    </p>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0" />
+                </Link>
+              ) : (
+                <div className="flex-1" />
+              )}
             </div>
           </div>
         </section>

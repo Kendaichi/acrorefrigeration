@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
-import type { Post } from "@/lib/supabase/posts";
+import type { Post, ContentBlock } from "@/lib/supabase/posts";
+import { normalizeContent } from "@/lib/supabase/posts";
 import { logActivity } from "@/lib/supabase/logging";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,16 +21,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PlusCircle, Trash2, Upload, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  PlusCircle,
+  Trash2,
+  Upload,
+  X,
+  Type,
+  Image as ImageIcon,
+  Quote,
+  List,
+  ListOrdered,
+  HelpCircle,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { convertToWebp } from "@/lib/convertToWebp";
 
 // ─── Schema ────────────────────────────────────────────────────────────────
 
+const blockSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("paragraph"), text: z.string().min(1, "Cannot be empty") }),
+  z.object({ type: z.literal("image"), src: z.string().min(1, "Image required"), alt: z.string().optional(), caption: z.string().optional() }),
+  z.object({ type: z.literal("blockquote"), text: z.string().min(1, "Cannot be empty"), cite: z.string().optional() }),
+  z.object({ type: z.literal("list"), style: z.enum(["bullet", "number", "letter"]), items: z.array(z.string().min(1, "Item cannot be empty")).min(1) }),
+  z.object({ type: z.literal("faq"), items: z.array(z.object({ question: z.string().min(1, "Question required"), answer: z.string().min(1, "Answer required") })).min(1) }),
+]);
+
 const sectionSchema = z.object({
   heading: z.string().min(1, "Heading is required"),
-  content: z
-    .array(z.object({ text: z.string().min(1, "Paragraph cannot be empty") }))
-    .min(1),
+  blocks: z.array(blockSchema).min(1, "At least one content block is required"),
 });
 
 const schema = z.object({
@@ -49,6 +75,7 @@ const schema = z.object({
 });
 
 type FormData = z.infer<typeof schema>;
+type BlockData = z.infer<typeof blockSchema>;
 
 function toSlug(title: string) {
   return title
@@ -57,25 +84,315 @@ function toSlug(title: string) {
     .replace(/^-|-$/g, "");
 }
 
-// ─── Section sub-component ─────────────────────────────────────────────────
+function contentBlocksToFormBlocks(content: (string | ContentBlock)[]): BlockData[] {
+  const normalized = normalizeContent(content);
+  return normalized.map((b) => {
+    if (b.type === "list") return { ...b, items: [...b.items] };
+    return { ...b };
+  }) as BlockData[];
+}
+
+// ─── Block Editor Component ───────────────────────────────────────────────
+
+function BlockEditor({
+  sectionIndex,
+  blockIndex,
+  control,
+  register,
+  setValue,
+  onRemove,
+  onMove,
+  canMoveUp,
+  canMoveDown,
+}: {
+  sectionIndex: number;
+  blockIndex: number;
+  control: any;
+  register: any;
+  setValue: any;
+  onRemove: () => void;
+  onMove: (dir: "up" | "down") => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+}) {
+  const prefix = `sections.${sectionIndex}.blocks.${blockIndex}` as const;
+  const block = useWatch({ control, name: prefix }) as BlockData;
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const supabase = createClient();
+      const converted = await convertToWebp(file);
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
+      const { error: uploadError } = await supabase.storage
+        .from("post-images")
+        .upload(path, converted, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from("post-images").getPublicUrl(path);
+      setValue(`${prefix}.src`, data.publicUrl);
+    } catch {
+      // silent — user can retry
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const blockLabel =
+    block.type === "paragraph" ? "Paragraph" :
+    block.type === "image" ? "Image" :
+    block.type === "blockquote" ? "Blockquote" :
+    block.type === "faq" ? "FAQ" :
+    block.type === "list" && block.style === "bullet" ? "Bullet List" :
+    block.type === "list" && block.style === "number" ? "Numbered List" :
+    block.type === "list" && block.style === "letter" ? "Letter List" : "Block";
+
+  const blockIcon =
+    block.type === "paragraph" ? <Type className="w-3.5 h-3.5" /> :
+    block.type === "image" ? <ImageIcon className="w-3.5 h-3.5" /> :
+    block.type === "blockquote" ? <Quote className="w-3.5 h-3.5" /> :
+    block.type === "faq" ? <HelpCircle className="w-3.5 h-3.5" /> :
+    block.type === "list" && block.style === "bullet" ? <List className="w-3.5 h-3.5" /> :
+    <ListOrdered className="w-3.5 h-3.5" />;
+
+  return (
+    <div className="border border-border rounded-lg p-4 bg-background space-y-3">
+      {/* Block header */}
+      <div className="flex items-center gap-2">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-secondary px-2 py-1 rounded-md">
+          {blockIcon} {blockLabel}
+        </span>
+        <div className="flex-1" />
+        <button type="button" onClick={() => onMove("up")} disabled={!canMoveUp} className="p-1 rounded hover:bg-secondary disabled:opacity-20 transition-colors">
+          <ChevronUp className="w-3.5 h-3.5" />
+        </button>
+        <button type="button" onClick={() => onMove("down")} disabled={!canMoveDown} className="p-1 rounded hover:bg-secondary disabled:opacity-20 transition-colors">
+          <ChevronDown className="w-3.5 h-3.5" />
+        </button>
+        <Button type="button" size="sm" variant="ghost" onClick={onRemove}>
+          <Trash2 className="w-3.5 h-3.5 text-destructive" />
+        </Button>
+      </div>
+
+      {/* Block body */}
+      {block.type === "paragraph" && (
+        <Textarea
+          {...register(`${prefix}.text`)}
+          rows={3}
+          className="resize-none"
+          placeholder="Write your paragraph…"
+        />
+      )}
+
+      {block.type === "blockquote" && (
+        <div className="space-y-2">
+          <Textarea
+            {...register(`${prefix}.text`)}
+            rows={3}
+            className="resize-none italic border-l-4 border-primary/30 pl-4"
+            placeholder="Write the quote…"
+          />
+          <Input
+            {...register(`${prefix}.cite`)}
+            placeholder="Citation / source (optional)"
+            className="text-sm"
+          />
+        </div>
+      )}
+
+      {block.type === "image" && (
+        <div className="space-y-2">
+          {block.src ? (
+            <div className="relative rounded-lg overflow-hidden border border-border">
+              <img src={block.src} alt={block.alt || ""} className="w-full h-40 object-cover" />
+              <button
+                type="button"
+                onClick={() => setValue(`${prefix}.src`, "")}
+                className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <label className={`flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors ${uploading ? "opacity-60 pointer-events-none" : ""}`}>
+              {uploading ? (
+                <span className="text-sm text-muted-foreground">Uploading…</span>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-medium">Click to upload image</span>
+                </>
+              )}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                disabled={uploading}
+                onChange={handleImageUpload}
+              />
+            </label>
+          )}
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              {...register(`${prefix}.alt`)}
+              placeholder="Alt text (optional)"
+              className="text-sm"
+            />
+            <Input
+              {...register(`${prefix}.caption`)}
+              placeholder="Caption (optional)"
+              className="text-sm"
+            />
+          </div>
+        </div>
+      )}
+
+      {block.type === "list" && (
+        <ListBlockEditor
+          prefix={prefix}
+          control={control}
+          register={register}
+          setValue={setValue}
+        />
+      )}
+
+      {block.type === "faq" && (
+        <FaqBlockEditor
+          prefix={prefix}
+          control={control}
+          register={register}
+          setValue={setValue}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── List Block Editor ────────────────────────────────────────────────────
+
+function ListBlockEditor({
+  prefix,
+  control,
+  register,
+  setValue,
+}: {
+  prefix: string;
+  control: any;
+  register: any;
+  setValue: any;
+}) {
+  const items = (useWatch({ control, name: `${prefix}.items` }) as string[]) || [""];
+
+  const addItem = () => setValue(`${prefix}.items`, [...items, ""]);
+  const removeItem = (index: number) =>
+    setValue(`${prefix}.items`, items.filter((_, i) => i !== index));
+
+  return (
+    <div className="space-y-2">
+      {items.map((_, i) => (
+        <div key={i} className="flex gap-2 items-start">
+          <span className="text-xs text-muted-foreground mt-2.5 w-5 text-right flex-shrink-0">
+            {i + 1}.
+          </span>
+          <Input
+            {...register(`${prefix}.items.${i}`)}
+            placeholder={`Item ${i + 1}`}
+            className="flex-1 text-sm"
+          />
+          {items.length > 1 && (
+            <Button type="button" size="sm" variant="ghost" onClick={() => removeItem(i)} className="flex-shrink-0">
+              <Trash2 className="w-3 h-3 text-destructive" />
+            </Button>
+          )}
+        </div>
+      ))}
+      <Button type="button" size="sm" variant="outline" onClick={addItem}>
+        <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Item
+      </Button>
+    </div>
+  );
+}
+
+// ─── FAQ Block Editor ─────────────────────────────────────────────────
+
+function FaqBlockEditor({
+  prefix,
+  control,
+  register,
+  setValue,
+}: {
+  prefix: string;
+  control: any;
+  register: any;
+  setValue: any;
+}) {
+  const items = (useWatch({ control, name: `${prefix}.items` }) as { question: string; answer: string }[]) || [{ question: "", answer: "" }];
+
+  const addItem = () => setValue(`${prefix}.items`, [...items, { question: "", answer: "" }]);
+  const removeItem = (index: number) =>
+    setValue(`${prefix}.items`, items.filter((_, i) => i !== index));
+
+  return (
+    <div className="space-y-3">
+      {items.map((_, i) => (
+        <div key={i} className="border border-border rounded-lg p-3 space-y-2 bg-secondary/30">
+          <div className="flex items-start gap-2">
+            <span className="text-xs font-medium text-primary mt-2 flex-shrink-0">Q{i + 1}</span>
+            <Input
+              {...register(`${prefix}.items.${i}.question`)}
+              placeholder="Question"
+              className="flex-1 text-sm font-medium"
+            />
+            {items.length > 1 && (
+              <Button type="button" size="sm" variant="ghost" onClick={() => removeItem(i)} className="flex-shrink-0">
+                <Trash2 className="w-3 h-3 text-destructive" />
+              </Button>
+            )}
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-xs font-medium text-muted-foreground mt-2 flex-shrink-0">A{i + 1}</span>
+            <Textarea
+              {...register(`${prefix}.items.${i}.answer`)}
+              placeholder="Answer"
+              rows={2}
+              className="flex-1 text-sm resize-none"
+            />
+          </div>
+        </div>
+      ))}
+      <Button type="button" size="sm" variant="outline" onClick={addItem}>
+        <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add FAQ Item
+      </Button>
+    </div>
+  );
+}
+
+// ─── Section Editor ───────────────────────────────────────────────────────
 
 function SectionEditor({
   sectionIndex,
   control,
   register,
+  setValue,
   onRemove,
   canRemove,
 }: {
   sectionIndex: number;
   control: any;
   register: any;
+  setValue: any;
   onRemove: () => void;
   canRemove: boolean;
 }) {
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control,
-    name: `sections.${sectionIndex}.content`,
+    name: `sections.${sectionIndex}.blocks`,
   });
+
+  const addBlock = (block: BlockData) => append(block);
 
   return (
     <div className="border border-border rounded-xl p-5 space-y-4 bg-card">
@@ -101,36 +418,56 @@ function SectionEditor({
       </div>
 
       <div className="space-y-3">
-        <Label>Paragraphs</Label>
-        {fields.map((field, pi) => (
-          <div key={field.id} className="flex gap-2">
-            <Textarea
-              {...register(`sections.${sectionIndex}.content.${pi}.text`)}
-              rows={3}
-              className="flex-1 resize-none"
-              placeholder={`Paragraph ${pi + 1}`}
-            />
-            {fields.length > 1 && (
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={() => remove(pi)}
-                className="mt-1 flex-shrink-0 self-start"
-              >
-                <Trash2 className="w-3.5 h-3.5 text-destructive" />
-              </Button>
-            )}
-          </div>
+        <Label>Content Blocks</Label>
+        {fields.map((field, bi) => (
+          <BlockEditor
+            key={field.id}
+            sectionIndex={sectionIndex}
+            blockIndex={bi}
+            control={control}
+            register={register}
+            setValue={setValue}
+            onRemove={() => remove(bi)}
+            onMove={(dir) => {
+              const target = dir === "up" ? bi - 1 : bi + 1;
+              if (target >= 0 && target < fields.length) move(bi, target);
+            }}
+            canMoveUp={bi > 0}
+            canMoveDown={bi < fields.length - 1}
+          />
         ))}
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => append({ text: "" })}
-        >
-          <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Paragraph
-        </Button>
+
+        {/* Add block dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button type="button" size="sm" variant="outline">
+              <PlusCircle className="w-3.5 h-3.5 mr-1" /> Add Block
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onClick={() => addBlock({ type: "paragraph", text: "" })}>
+              <Type className="w-4 h-4 mr-2" /> Paragraph
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock({ type: "image", src: "", alt: "", caption: "" })}>
+              <ImageIcon className="w-4 h-4 mr-2" /> Image
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock({ type: "blockquote", text: "", cite: "" })}>
+              <Quote className="w-4 h-4 mr-2" /> Blockquote
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock({ type: "list", style: "bullet", items: [""] })}>
+              <List className="w-4 h-4 mr-2" /> Bullet List
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock({ type: "list", style: "number", items: [""] })}>
+              <ListOrdered className="w-4 h-4 mr-2" /> Numbered List
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock({ type: "list", style: "letter", items: [""] })}>
+              <ListOrdered className="w-4 h-4 mr-2" /> Letter List
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock({ type: "faq", items: [{ question: "", answer: "" }] })}>
+              <HelpCircle className="w-4 h-4 mr-2" /> FAQ
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
@@ -149,8 +486,8 @@ export default function PostEditor({ post }: { post?: Post }) {
   const defaultSections =
     post?.post_sections?.map((s) => ({
       heading: s.heading,
-      content: s.content.map((t) => ({ text: t })),
-    })) ?? [{ heading: "", content: [{ text: "" }] }];
+      blocks: contentBlocksToFormBlocks(s.content),
+    })) ?? [{ heading: "", blocks: [{ type: "paragraph" as const, text: "" }] }];
 
   const {
     register,
@@ -189,10 +526,10 @@ export default function PostEditor({ post }: { post?: Post }) {
       const converted = await convertToWebp(file);
       const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
       const { error: uploadError } = await supabase.storage
-        .from("project-images")
+        .from("post-images")
         .upload(path, converted, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from("project-images").getPublicUrl(path);
+      const { data } = supabase.storage.from("post-images").getPublicUrl(path);
       setImageUrl(data.publicUrl);
     } catch (e: unknown) {
       setServerError(e instanceof Error ? e.message : "Upload failed.");
@@ -249,7 +586,7 @@ export default function PostEditor({ post }: { post?: Post }) {
       const sections = data.sections.map((s, i) => ({
         post_id: postId!,
         heading: s.heading,
-        content: s.content.map((c) => c.text),
+        content: s.blocks as ContentBlock[],
         position: i,
       }));
 
@@ -492,7 +829,7 @@ export default function PostEditor({ post }: { post?: Post }) {
             size="sm"
             variant="outline"
             onClick={() =>
-              appendSection({ heading: "", content: [{ text: "" }] })
+              appendSection({ heading: "", blocks: [{ type: "paragraph", text: "" }] })
             }
           >
             <PlusCircle className="w-4 h-4 mr-1" /> Add Section
@@ -510,6 +847,7 @@ export default function PostEditor({ post }: { post?: Post }) {
               sectionIndex={si}
               control={control}
               register={register}
+              setValue={setValue}
               onRemove={() => removeSection(si)}
               canRemove={sectionFields.length > 1}
             />

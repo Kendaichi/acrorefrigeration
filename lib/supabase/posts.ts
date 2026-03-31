@@ -2,11 +2,43 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type PostType = "Guide" | "Article" | "Case Study" | "Video";
 
+// ── Content block types ─────────────────────────────────────────────────────
+
+export type ContentBlock =
+  | { type: "paragraph"; text: string }
+  | { type: "image"; src: string; alt?: string; caption?: string }
+  | { type: "blockquote"; text: string; cite?: string }
+  | { type: "list"; style: "bullet" | "number" | "letter"; items: string[] }
+  | { type: "faq"; items: { question: string; answer: string }[] };
+
+/**
+ * Normalise raw DB content into ContentBlock[].
+ * Handles legacy string[], JSON-stringified blocks, and new block objects.
+ */
+export function normalizeContent(raw: unknown): ContentBlock[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    if (typeof item === "string") {
+      // Try to parse JSON-stringified block objects
+      if (item.startsWith("{")) {
+        try {
+          const parsed = JSON.parse(item);
+          if (parsed && typeof parsed.type === "string") return parsed as ContentBlock;
+        } catch {
+          // not JSON — fall through to plain paragraph
+        }
+      }
+      return { type: "paragraph", text: item } as ContentBlock;
+    }
+    return item as ContentBlock;
+  });
+}
+
 export interface PostSection {
   id: string;
   post_id: string;
   heading: string;
-  content: string[];
+  content: (string | ContentBlock)[];
   position: number;
 }
 

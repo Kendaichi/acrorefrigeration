@@ -58,6 +58,30 @@ export default async function ResourcePageRoute({ params }: Props) {
         ).data ?? []
       : [];
 
+  // Fetch previous post (next newer) and next post (next older)
+  const [{ data: prevPosts }, { data: nextPosts }] = await Promise.all([
+    withRetry(() =>
+      supabase
+        .from("posts")
+        .select("slug, title")
+        .eq("published", true)
+        .gt("created_at", post.created_at)
+        .order("created_at", { ascending: true })
+        .limit(1)
+    ),
+    withRetry(() =>
+      supabase
+        .from("posts")
+        .select("slug, title")
+        .eq("published", true)
+        .lt("created_at", post.created_at)
+        .order("created_at", { ascending: false })
+        .limit(1)
+    ),
+  ]);
+  const prevPost = prevPosts?.[0] ?? null;
+  const nextPost = nextPosts?.[0] ?? null;
+
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -118,7 +142,7 @@ export default async function ResourcePageRoute({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <ResourcePage post={post} relatedPosts={relatedPosts} />
+      <ResourcePage post={post} relatedPosts={relatedPosts} prevPost={prevPost} nextPost={nextPost} />
     </>
   );
 }
