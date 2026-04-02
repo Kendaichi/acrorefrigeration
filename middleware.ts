@@ -32,6 +32,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
   const isLoginPath = pathname === "/admin/login";
+  const isSetPasswordPath = pathname === "/admin/set-password";
 
   const redirect = (dest: string) => {
     const url = request.nextUrl.clone();
@@ -41,8 +42,8 @@ export async function middleware(request: NextRequest) {
     return res;
   };
 
-  // Not logged in → redirect to login
-  if (!user && !isLoginPath) return redirect("/admin/login");
+  // Not logged in → allow login and set-password pages, redirect others to login
+  if (!user && !isLoginPath && !isSetPasswordPath) return redirect("/admin/login");
 
   // Logged in — fetch profile once (needed for both login-redirect and access check)
   if (user) {

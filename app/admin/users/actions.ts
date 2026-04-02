@@ -6,7 +6,10 @@ import { logActivity } from "@/lib/supabase/logging";
 
 export async function inviteUser(email: string) {
   const supabase = createAdminClient();
-  const { error } = await supabase.auth.admin.inviteUserByEmail(email);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const { error } = await supabase.auth.admin.inviteUserByEmail(email, {
+    redirectTo: `${siteUrl}/auth/callback?next=/admin/set-password`,
+  });
   if (error) throw new Error(error.message);
   await logActivity("create", "users", `Invited user: ${email}`);
 }
@@ -36,10 +39,9 @@ export async function sendPasswordReset(email: string) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${
-      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-    }/admin/login`,
+    redirectTo: `${siteUrl}/auth/callback?next=/admin/set-password`,
   });
   if (error) throw new Error(error.message);
 }
