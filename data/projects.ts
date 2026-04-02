@@ -16,7 +16,8 @@ export interface Project {
 export const projectsPage = {
   badge: "Our Work",
   heading: "Featured Projects",
-  subheading: "A selection of commercial refrigeration projects delivered across Australia.",
+  subheading:
+    "A selection of commercial refrigeration projects delivered across Queensland.",
   cta: { label: "Discuss Your Needs", href: "/contact" },
 };
 

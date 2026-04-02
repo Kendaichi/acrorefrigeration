@@ -33,6 +33,7 @@ import {
 import {
   UserPlus, Trash2, Mail, ShieldCheck, MoreHorizontal,
   KeyRound, Ban, CheckCircle, RefreshCw, Pencil, Shield,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 
 const formatDate = (d?: string | null) =>
@@ -397,6 +398,8 @@ function UserActions({
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
+const PAGE_SIZE = 20;
+
 type ProfileMap = Record<string, { user_id: string; role: string; permissions: string[] }>;
 
 export default function UsersClient({
@@ -409,6 +412,11 @@ export default function UsersClient({
   const router = useRouter();
   const [, startTransition] = useTransition();
   const refresh = () => startTransition(() => router.refresh());
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(initialUsers.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginated = initialUsers.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   return (
     <div>
@@ -445,13 +453,13 @@ export default function UsersClient({
               </tr>
             </thead>
             <tbody>
-              {initialUsers.map((user, i) => {
+              {paginated.map((user, i) => {
                 const profile = profileMap[user.id] as UserProfile | undefined;
                 const confirmed = !!user.email_confirmed_at;
                 const isBanned = !!(user as any).banned_until;
                 const role = profile?.role ?? null;
                 return (
-                  <tr key={user.id} className={i < initialUsers.length - 1 ? "border-b border-border" : ""}>
+                  <tr key={user.id} className={i < paginated.length - 1 ? "border-b border-border" : ""}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -494,6 +502,55 @@ export default function UsersClient({
               })}
             </tbody>
           </table>
+
+          {/* Footer with count + pagination */}
+          <div className="flex items-center justify-between px-4 py-2 bg-secondary border-t border-border">
+            <p className="text-xs text-muted-foreground">
+              Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, initialUsers.length)} of {initialUsers.length} users
+            </p>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={safePage <= 1}
+                  onClick={() => setPage(safePage - 1)}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
+                  .reduce<(number | "ellipsis")[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("ellipsis");
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item, idx) =>
+                    item === "ellipsis" ? (
+                      <span key={`e-${idx}`} className="px-1 text-xs text-muted-foreground">…</span>
+                    ) : (
+                      <Button
+                        key={item}
+                        size="sm"
+                        variant={item === safePage ? "default" : "ghost"}
+                        className="w-8 h-8 p-0 text-xs"
+                        onClick={() => setPage(item as number)}
+                      >
+                        {item}
+                      </Button>
+                    )
+                  )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={safePage >= totalPages}
+                  onClick={() => setPage(safePage + 1)}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useTransition } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { PlusCircle, Pencil, Trash2, Search } from "lucide-react";
+import {
+  PlusCircle, Pencil, Trash2, Search, ChevronLeft, ChevronRight,
+} from "lucide-react";
 
 interface ActivityLog {
   id: string;
@@ -47,33 +51,60 @@ function formatRelative(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export default function LogsClient({ logs }: { logs: ActivityLog[] }) {
-  const [search, setSearch]       = useState("");
-  const [filterAction, setFilterAction] = useState("all");
-  const [filterTable, setFilterTable]   = useState("all");
+interface LogsClientProps {
+  logs: ActivityLog[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  tables: string[];
+  actionCounts: { create: number; update: number; delete: number };
+  filters: { action: string; table: string; q: string };
+}
 
-  const tables = [...new Set(logs.map((l) => l.table_name))].sort();
+export default function LogsClient({
+  logs, totalCount, page, pageSize, tables, actionCounts, filters,
+}: LogsClientProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const [search, setSearch] = useState(filters.q);
 
-  const filtered = logs.filter((log) => {
-    if (filterAction !== "all" && log.action !== filterAction) return false;
-    if (filterTable  !== "all" && log.table_name !== filterTable) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (
-        log.details.toLowerCase().includes(q) ||
-        log.user_email.toLowerCase().includes(q) ||
-        log.table_name.toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  const pushParams = (updates: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([k, v]) => {
+      if ((k === "page" && v === "1") || (k !== "page" && (v === "all" || v === ""))) {
+        params.delete(k);
+      } else {
+        params.set(k, v);
+      }
+    });
+    const qs = params.toString();
+    startTransition(() => router.push(qs ? `${pathname}?${qs}` : pathname));
+  };
+
+  // Debounce search input → URL
+  useEffect(() => {
+    if (search === filters.q) return;
+    const t = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (search) params.set("q", search); else params.delete("q");
+      params.delete("page");
+      const qs = params.toString();
+      startTransition(() => router.push(qs ? `${pathname}?${qs}` : pathname));
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   return (
-    <div>
+    <div className={isPending ? "opacity-60 pointer-events-none transition-opacity" : ""}>
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Activity Logs</h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Last 200 admin actions — create, update, and delete events.
+          Admin actions — create, update, and delete events.
         </p>
       </div>
 
@@ -88,7 +119,7 @@ export default function LogsClient({ logs }: { logs: ActivityLog[] }) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={filterAction} onValueChange={setFilterAction}>
+        <Select value={filters.action} onValueChange={(v) => pushParams({ action: v, page: "1" })}>
           <SelectTrigger className="w-36"><SelectValue placeholder="Action" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Actions</SelectItem>
@@ -97,7 +128,7 @@ export default function LogsClient({ logs }: { logs: ActivityLog[] }) {
             <SelectItem value="delete">Delete</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={filterTable} onValueChange={setFilterTable}>
+        <Select value={filters.table} onValueChange={(v) => pushParams({ table: v, page: "1" })}>
           <SelectTrigger className="w-44"><SelectValue placeholder="Table" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Tables</SelectItem>
@@ -111,7 +142,7 @@ export default function LogsClient({ logs }: { logs: ActivityLog[] }) {
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {(["create", "update", "delete"] as const).map((action) => {
-          const count = logs.filter((l) => l.action === action).length;
+          const count = actionCounts[action];
           const Icon = ACTION_ICONS[action];
           return (
             <div key={action} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3">
@@ -128,9 +159,9 @@ export default function LogsClient({ logs }: { logs: ActivityLog[] }) {
       </div>
 
       {/* Log list */}
-      {filtered.length === 0 ? (
+      {logs.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground text-sm">
-          {logs.length === 0
+          {totalCount === 0 && !filters.q && filters.action === "all" && filters.table === "all"
             ? "No activity logged yet. Actions will appear here as you use the admin panel."
             : "No logs match your filters."}
         </div>
@@ -147,10 +178,10 @@ export default function LogsClient({ logs }: { logs: ActivityLog[] }) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((log, i) => {
+              {logs.map((log, i) => {
                 const Icon = ACTION_ICONS[log.action] ?? Pencil;
                 return (
-                  <tr key={log.id} className={i < filtered.length - 1 ? "border-b border-border" : ""}>
+                  <tr key={log.id} className={i < logs.length - 1 ? "border-b border-border" : ""}>
                     <td className="px-4 py-3">
                       <Badge variant={ACTION_COLORS[log.action] ?? "secondary"} className="gap-1">
                         <Icon className="w-3 h-3" />
@@ -176,8 +207,54 @@ export default function LogsClient({ logs }: { logs: ActivityLog[] }) {
               })}
             </tbody>
           </table>
-          <div className="px-4 py-2 bg-secondary border-t border-border text-xs text-muted-foreground">
-            Showing {filtered.length} of {logs.length} entries
+
+          {/* Footer with count + pagination */}
+          <div className="flex items-center justify-between px-4 py-2 bg-secondary border-t border-border">
+            <p className="text-xs text-muted-foreground">
+              Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)} of {totalCount} entries
+            </p>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={page <= 1}
+                  onClick={() => pushParams({ page: String(page - 1) })}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                  .reduce<(number | "ellipsis")[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("ellipsis");
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item, idx) =>
+                    item === "ellipsis" ? (
+                      <span key={`e-${idx}`} className="px-1 text-xs text-muted-foreground">…</span>
+                    ) : (
+                      <Button
+                        key={item}
+                        size="sm"
+                        variant={item === page ? "default" : "ghost"}
+                        className="w-8 h-8 p-0 text-xs"
+                        onClick={() => pushParams({ page: String(item) })}
+                      >
+                        {item}
+                      </Button>
+                    )
+                  )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={page >= totalPages}
+                  onClick={() => pushParams({ page: String(page + 1) })}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
