@@ -36,46 +36,16 @@ export default function SetPasswordPage() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   useEffect(() => {
+    // The auth/callback route already exchanged the code for a session.
+    // Just verify the user has a valid session.
     const supabase = createClient();
-    let resolved = false;
-
-    // Listen for auth events — Supabase client auto-detects
-    // the hash fragment (#access_token=...&type=recovery/invite)
-    // and exchanges it for a session.
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (resolved) return;
-      if (
-        event === "PASSWORD_RECOVERY" ||
-        event === "SIGNED_IN" ||
-        event === "TOKEN_REFRESHED"
-      ) {
-        resolved = true;
-        setStatus("ready");
-      }
-    });
-
-    // Fallback: if user is already signed in (e.g. navigated here directly)
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!resolved && session) {
-        resolved = true;
+      if (session) {
         setStatus("ready");
-      }
-    });
-
-    // Timeout: if nothing happens after 5s, the link is invalid/expired
-    const timeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
+      } else {
         setStatus("error");
       }
-    }, 5000);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
-    };
+    });
   }, []);
 
   const onSubmit = async (data: FormData) => {
