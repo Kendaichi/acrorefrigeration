@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { canAccess, type UserProfile } from "@/lib/rbac";
+import { canAccess, getDefaultPage, type UserProfile } from "@/lib/rbac";
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -43,11 +43,8 @@ export async function middleware(request: NextRequest) {
   // Not logged in → redirect to login
   if (!user && !isLoginPath) return redirect("/admin/login");
 
-  // Logged in + on login page → redirect to admin home
-  if (user && isLoginPath) return redirect("/admin/home");
-
-  // Logged in — check role-based access
-  if (user && !isLoginPath) {
+  // Logged in — fetch profile once (needed for both login-redirect and access check)
+  if (user) {
     const { data: profile } = await supabase
       .from("user_profiles")
       .select("user_id, role, permissions")
@@ -56,6 +53,12 @@ export async function middleware(request: NextRequest) {
 
     const userProfile = profile as UserProfile | null;
 
+    // On login page → redirect to appropriate default page
+    if (isLoginPath) {
+      const dest = userProfile ? getDefaultPage(userProfile) : "/admin/home";
+      return redirect(dest);
+    }
+
     // No profile yet → treat as admin (first-time setup)
     if (!userProfile) {
       supabaseResponse.headers.set("x-pathname", pathname);
@@ -63,7 +66,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (!canAccess(userProfile, pathname)) {
-      return redirect("/admin/profile");
+      return redirect(getDefaultPage(userProfile));
     }
   }
 

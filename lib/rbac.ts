@@ -58,6 +58,7 @@ export const PERMISSION_PRESETS: Record<string, { label: string; permissions: Pe
 // Path → permission key mapping
 // "admin_only" = only admins, never assignable to employees
 export const PATH_PERMISSION_MAP: Record<string, PermissionKey | "admin_only"> = {
+  "/admin/home":         "admin_only",
   "/admin/posts":        "posts",
   "/admin/services":     "services",
   "/admin/industries":   "industries",
@@ -68,7 +69,34 @@ export const PATH_PERMISSION_MAP: Record<string, PermissionKey | "admin_only"> =
   "/admin/users":        "admin_only",
   "/admin/logs":         "admin_only",
   "/admin/maintenance":  "admin_only",
+  "/admin/settings":     "admin_only",
+  "/admin/legal":        "admin_only",
+  "/admin/pricing":      "admin_only",
+  "/admin/faqs":         "admin_only",
 };
+
+/** Return the first admin path an employee is allowed to visit. */
+export function getDefaultPage(profile: UserProfile): string {
+  if (profile.role === "admin") return "/admin/home";
+
+  // Order matches sidebar priority
+  const permissionToPath: [PermissionKey, string][] = [
+    ["posts",        "/admin/posts"],
+    ["services",     "/admin/services"],
+    ["industries",   "/admin/industries"],
+    ["brands",       "/admin/brands"],
+    ["projects",     "/admin/projects"],
+    ["locations",    "/admin/locations"],
+    ["testimonials", "/admin/testimonials"],
+    ["portal",       "/admin/portal"],
+  ];
+
+  for (const [perm, path] of permissionToPath) {
+    if (profile.permissions.includes(perm)) return path;
+  }
+
+  return "/admin/profile";
+}
 
 export function canAccess(
   profile: UserProfile | null,
