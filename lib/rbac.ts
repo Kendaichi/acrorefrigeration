@@ -16,6 +16,14 @@ export const PERMISSION_KEYS = [
   "testimonials",
   "locations",
   "portal",
+  "messages",
+  "home",
+  "pricing",
+  "faqs",
+  "legal",
+  "settings",
+  "logs",
+  "maintenance",
 ] as const;
 
 export type PermissionKey = (typeof PERMISSION_KEYS)[number];
@@ -29,6 +37,14 @@ export const PERMISSION_LABELS: Record<PermissionKey, string> = {
   testimonials: "Testimonials",
   locations: "Locations",
   portal: "Portal",
+  messages: "Messages",
+  home: "Home Page",
+  pricing: "Pricing",
+  faqs: "FAQs",
+  legal: "Legal Pages",
+  settings: "Settings",
+  logs: "Activity Logs",
+  maintenance: "Maintenance",
 };
 
 // Predefined permission sets
@@ -70,7 +86,7 @@ export const PERMISSION_PRESETS: Record<
 // "admin_only" = only admins, never assignable to employees
 export const PATH_PERMISSION_MAP: Record<string, PermissionKey | "admin_only"> =
   {
-    "/admin/home": "admin_only",
+    "/admin/home": "home",
     "/admin/posts": "posts",
     "/admin/services": "services",
     "/admin/industries": "industries",
@@ -79,12 +95,13 @@ export const PATH_PERMISSION_MAP: Record<string, PermissionKey | "admin_only"> =
     "/admin/testimonials": "testimonials",
     "/admin/locations": "locations",
     "/admin/users": "admin_only",
-    "/admin/logs": "admin_only",
-    "/admin/maintenance": "admin_only",
-    "/admin/settings": "admin_only",
-    "/admin/legal": "admin_only",
-    "/admin/pricing": "admin_only",
-    "/admin/faqs": "admin_only",
+    "/admin/logs": "logs",
+    "/admin/maintenance": "maintenance",
+    "/admin/settings": "settings",
+    "/admin/legal": "legal",
+    "/admin/pricing": "pricing",
+    "/admin/faqs": "faqs",
+    "/admin/messages": "messages",
   };
 
 /** Return the first admin path an employee is allowed to visit. */
@@ -93,13 +110,21 @@ export function getDefaultPage(profile: UserProfile): string {
 
   // Order matches sidebar priority
   const permissionToPath: [PermissionKey, string][] = [
+    ["home", "/admin/home"],
     ["posts", "/admin/posts"],
     ["services", "/admin/services"],
     ["industries", "/admin/industries"],
     ["brands", "/admin/brands"],
     ["projects", "/admin/projects"],
     ["locations", "/admin/locations"],
+    ["messages", "/admin/messages"],
+    ["pricing", "/admin/pricing"],
     ["testimonials", "/admin/testimonials"],
+    ["faqs", "/admin/faqs"],
+    ["legal", "/admin/legal"],
+    ["settings", "/admin/settings"],
+    ["logs", "/admin/logs"],
+    ["maintenance", "/admin/maintenance"],
     ["portal", "/admin/portal"],
   ];
 

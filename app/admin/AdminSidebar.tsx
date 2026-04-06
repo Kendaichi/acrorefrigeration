@@ -51,22 +51,22 @@ const navGroups: NavGroup[] = [
   {
     label: "Content",
     items: [
-      { label: "Home Page",   href: "/admin/home",       icon: Home,      permission: "admin_only" },
+      { label: "Home Page",   href: "/admin/home",       icon: Home,      permission: "home" },
       { label: "Posts",       href: "/admin/posts",      icon: FileText,  permission: "posts" },
       { label: "Services",    href: "/admin/services",   icon: Wrench,    permission: "services" },
       { label: "Industries",  href: "/admin/industries", icon: Building2, permission: "industries" },
       { label: "Brands",      href: "/admin/brands",     icon: Tag,       permission: "brands" },
-      { label: "Projects",    href: "/admin/projects",   icon: Briefcase, permission: "admin_only" },
+      { label: "Projects",    href: "/admin/projects",   icon: Briefcase, permission: "projects" },
       { label: "Locations",   href: "/admin/locations",  icon: MapPin,    permission: "locations" },
     ],
   },
   {
     label: "Engage",
     items: [
-      { label: "Messages",     href: "/admin/messages",     icon: Inbox,       permission: "admin_only" },
-      { label: "Pricing",      href: "/admin/pricing",      icon: DollarSign,  permission: "admin_only" },
+      { label: "Messages",     href: "/admin/messages",     icon: Inbox,       permission: "messages" },
+      { label: "Pricing",      href: "/admin/pricing",      icon: DollarSign,  permission: "pricing" },
       { label: "Testimonials", href: "/admin/testimonials", icon: MessageSquare, permission: "testimonials" },
-      { label: "FAQs",         href: "/admin/faqs",         icon: HelpCircle,  permission: "admin_only" },
+      { label: "FAQs",         href: "/admin/faqs",         icon: HelpCircle,  permission: "faqs" },
     ],
   },
   {
@@ -79,10 +79,10 @@ const navGroups: NavGroup[] = [
   {
     label: "Admin",
     items: [
-      { label: "Legal Pages",  href: "/admin/legal",        icon: ScrollText,      permission: "admin_only" },
-      { label: "Settings",     href: "/admin/settings",     icon: SlidersHorizontal, permission: "admin_only" },
-      { label: "Logs",         href: "/admin/logs",         icon: FileText,        permission: "admin_only" },
-      { label: "Maintenance",  href: "/admin/maintenance",  icon: Settings2,       permission: "admin_only" },
+      { label: "Legal Pages",  href: "/admin/legal",        icon: ScrollText,      permission: "legal" },
+      { label: "Settings",     href: "/admin/settings",     icon: SlidersHorizontal, permission: "settings" },
+      { label: "Logs",         href: "/admin/logs",         icon: FileText,        permission: "logs" },
+      { label: "Maintenance",  href: "/admin/maintenance",  icon: Settings2,       permission: "maintenance" },
     ],
   },
 ];
