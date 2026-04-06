@@ -1,10 +1,11 @@
 "use client";
 
+import { useState, type FormEvent } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, Loader2, CheckCircle2 } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { contactPage, contactDetails, serviceOptions } from "@/data/contact";
 import type { SiteSettings } from "@/lib/supabase/content";
@@ -40,6 +41,52 @@ const Contact = ({ settings }: { settings?: SiteSettings | null }) => {
   const address      = settings?.address       ?? contactDetails.location;
   const hours        = settings?.business_hours ?? contactDetails.hours;
   const emergency    = settings?.emergency_text ?? contactDetails.emergency;
+
+  const [formState, setFormState] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    service: serviceOptions[0],
+    details: "",
+  });
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setStatus("loading");
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formState),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorMsg(data.error || "Something went wrong.");
+        setStatus("error");
+        return;
+      }
+
+      setStatus("success");
+      setFormState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        service: serviceOptions[0],
+        details: "",
+      });
+    } catch {
+      setErrorMsg("Network error. Please try again.");
+      setStatus("error");
+    }
+  }
 
   return (
     <Layout>
@@ -118,47 +165,105 @@ const Contact = ({ settings }: { settings?: SiteSettings | null }) => {
               className="bg-card rounded-xl p-8 border border-border shadow-sm"
             >
               <h2 className="text-xl font-bold mb-6">{contactPage.formHeading}</h2>
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">First Name</label>
-                    <Input placeholder="John" />
+
+              {status === "success" ? (
+                <div className="text-center py-12">
+                  <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-2">Enquiry Submitted!</h3>
+                  <p className="text-muted-foreground mb-6">
+                    We&apos;ll get back to you within 2 business hours.
+                  </p>
+                  <Button variant="outline" onClick={() => setStatus("idle")} className="cursor-pointer">
+                    Send Another Enquiry
+                  </Button>
+                </div>
+              ) : (
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-1.5 block">First Name *</label>
+                      <Input
+                        placeholder="John"
+                        required
+                        value={formState.firstName}
+                        onChange={(e) => setFormState((s) => ({ ...s, firstName: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1.5 block">Last Name *</label>
+                      <Input
+                        placeholder="Smith"
+                        required
+                        value={formState.lastName}
+                        onChange={(e) => setFormState((s) => ({ ...s, lastName: e.target.value }))}
+                      />
+                    </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1.5 block">Last Name</label>
-                    <Input placeholder="Smith" />
+                    <label className="text-sm font-medium mb-1.5 block">Email *</label>
+                    <Input
+                      type="email"
+                      placeholder="john@example.com"
+                      required
+                      value={formState.email}
+                      onChange={(e) => setFormState((s) => ({ ...s, email: e.target.value }))}
+                    />
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Email</label>
-                  <Input type="email" placeholder="john@example.com" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Phone</label>
-                  <Input type="tel" placeholder="04XX XXX XXX" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Service Required</label>
-                  <select className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
-                    {serviceOptions.map((opt) => (
-                      <option key={opt}>{opt}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Details</label>
-                  <Textarea
-                    placeholder="Describe your issue or requirements — equipment type, urgency, location, etc."
-                    rows={4}
-                  />
-                </div>
-                <Button type="submit" className="w-full cursor-pointer" size="lg">
-                  Submit Enquiry
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  {contactPage.formFootnote}
-                </p>
-              </form>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Phone</label>
+                    <Input
+                      type="tel"
+                      placeholder="04XX XXX XXX"
+                      value={formState.phone}
+                      onChange={(e) => setFormState((s) => ({ ...s, phone: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Service Required *</label>
+                    <select
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      required
+                      value={formState.service}
+                      onChange={(e) => setFormState((s) => ({ ...s, service: e.target.value }))}
+                    >
+                      {serviceOptions.map((opt) => (
+                        <option key={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Details</label>
+                    <Textarea
+                      placeholder="Describe your issue or requirements — equipment type, urgency, location, etc."
+                      rows={4}
+                      value={formState.details}
+                      onChange={(e) => setFormState((s) => ({ ...s, details: e.target.value }))}
+                    />
+                  </div>
+
+                  {status === "error" && (
+                    <p className="text-sm text-destructive text-center">{errorMsg}</p>
+                  )}
+
+                  <Button
+                    type="submit"
+                    className="w-full cursor-pointer"
+                    size="lg"
+                    disabled={status === "loading"}
+                  >
+                    {status === "loading" ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting…
+                      </>
+                    ) : (
+                      "Submit Enquiry"
+                    )}
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    {contactPage.formFootnote}
+                  </p>
+                </form>
+              )}
             </motion.div>
           </div>
         </div>

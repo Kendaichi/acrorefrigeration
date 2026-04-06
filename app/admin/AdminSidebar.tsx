@@ -15,6 +15,7 @@ import {
   FolderOpen,
   Briefcase,
   MessageSquare,
+  Inbox,
   HelpCircle,
   LogOut,
   ExternalLink,
@@ -62,6 +63,7 @@ const navGroups: NavGroup[] = [
   {
     label: "Engage",
     items: [
+      { label: "Messages",     href: "/admin/messages",     icon: Inbox,       permission: "admin_only" },
       { label: "Pricing",      href: "/admin/pricing",      icon: DollarSign,  permission: "admin_only" },
       { label: "Testimonials", href: "/admin/testimonials", icon: MessageSquare, permission: "testimonials" },
       { label: "FAQs",         href: "/admin/faqs",         icon: HelpCircle,  permission: "admin_only" },
