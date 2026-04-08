@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { ArrowRight, Wrench } from "lucide-react";
 import { motion, Variants } from "framer-motion";
-import { featuredBrands, otherBrandNames, brandsHomeSection } from "@/data/brands";
+import { featuredBrands as fallbackBrands, otherBrandNames as fallbackOtherBrands, brandsHomeSection } from "@/data/brands";
+import type { Brand, OtherBrand } from "@/lib/supabase/content";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -19,7 +20,20 @@ const cardVariant: Variants = {
   }),
 };
 
-const BrandsSection = () => (
+interface BrandsSectionProps {
+  brands?: Brand[];
+  otherBrands?: OtherBrand[];
+}
+
+const BrandsSection = ({ brands, otherBrands }: BrandsSectionProps) => {
+  const featured = brands?.length
+    ? brands.map((b) => ({ slug: b.slug, name: b.name, desc: b.description, speciality: b.speciality }))
+    : fallbackBrands;
+  const others = otherBrands?.length
+    ? otherBrands.map((b) => b.name)
+    : fallbackOtherBrands;
+
+  return (
   <section className="section-padding bg-background">
     <div className="container-narrow">
       <motion.div
@@ -42,7 +56,7 @@ const BrandsSection = () => (
 
       {/* Featured brand cards */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        {featuredBrands.map((brand, i) => (
+        {featured.map((brand, i) => (
           <motion.div
             key={brand.slug}
             custom={i}
@@ -89,7 +103,7 @@ const BrandsSection = () => (
           Also Servicing
         </p>
         <div className="flex flex-wrap justify-center gap-2">
-          {otherBrandNames.map((brand) => (
+          {others.map((brand) => (
             <span
               key={brand}
               className="px-3 py-1.5 bg-secondary border border-border rounded-full text-sm font-medium text-muted-foreground"
@@ -101,6 +115,7 @@ const BrandsSection = () => (
       </motion.div>
     </div>
   </section>
-);
+  );
+};
 
 export default BrandsSection;

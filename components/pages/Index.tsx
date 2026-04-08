@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import Hero from "@/components/home/Hero";
 import TrustBar from "@/components/home/TrustBar";
 import CredentialsStrip from "@/components/home/CredentialsStrip";
-import type { PricingTier, Testimonial, FAQ, Project, Industry } from "@/lib/supabase/content";
+import type { PricingTier, Testimonial, FAQ, Project, Industry, Brand, OtherBrand } from "@/lib/supabase/content";
 
 const ProblemSection = dynamic(
   () => import("@/components/home/ProblemSection")
@@ -53,9 +53,11 @@ interface IndexProps {
   pricingTiers: PricingTier[];
   featuredProjects: Project[];
   industries: Industry[];
+  brands: Brand[];
+  otherBrands: OtherBrand[];
 }
 
-const Index = ({ faqItems, reviewItems, pricingTiers, featuredProjects, industries }: IndexProps) => (
+const Index = ({ faqItems, reviewItems, pricingTiers, featuredProjects, industries, brands, otherBrands }: IndexProps) => (
   <Layout>
     <Hero />
     <TrustBar />
@@ -66,7 +68,7 @@ const Index = ({ faqItems, reviewItems, pricingTiers, featuredProjects, industri
     <WorkmanshipGuarantee />
     <ProcessTimeline />
     <IndustryCards industries={industries} />
-    <BrandsSection />
+    <BrandsSection brands={brands} otherBrands={otherBrands} />
     <ProjectsSection projects={featuredProjects} />
     <Testimonials initialTestimonials={reviewItems} />
     <ClientsSection />

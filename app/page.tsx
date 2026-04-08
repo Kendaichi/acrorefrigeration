@@ -3,7 +3,7 @@ import Index from "@/components/pages/Index";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { withRetry } from "@/lib/retry";
 import { faqSection, testimonialsSection } from "@/data/home";
-import { getAllIndustries } from "@/lib/supabase/content";
+import { getAllIndustries, getAllBrands, getAllOtherBrands } from "@/lib/supabase/content";
 
 export const revalidate = 600;
 
@@ -55,7 +55,7 @@ const localBusinessSchema = {
 
 export default async function Home() {
   const supabase = createAdminClient();
-  const [{ data: faqs }, { data: testimonials }, { data: pricingTiersData }, featuredProjects, industries] =
+  const [{ data: faqs }, { data: testimonials }, { data: pricingTiersData }, featuredProjects, industries, brands, otherBrands] =
     await Promise.all([
       withRetry(() => supabase.from("faqs").select("*").order("position")),
       withRetry(() => supabase.from("testimonials").select("*").order("position")),
@@ -64,6 +64,8 @@ export default async function Home() {
         supabase.from("projects").select("*").eq("featured", true).order("position").limit(3)
       ).then((r) => r.data ?? []).catch(() => []),
       withRetry(() => getAllIndustries(supabase)).catch(() => []),
+      withRetry(() => getAllBrands(supabase)).catch(() => []),
+      withRetry(() => getAllOtherBrands(supabase)).catch(() => []),
     ]);
 
   const faqItems = faqs?.length
@@ -124,6 +126,8 @@ export default async function Home() {
         pricingTiers={pricingTiersData ?? []}
         featuredProjects={featuredProjects}
         industries={industries}
+        brands={brands}
+        otherBrands={otherBrands}
       />
     </>
   );
