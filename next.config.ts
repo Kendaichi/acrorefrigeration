@@ -149,6 +149,26 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/emergency-commercial-refrigeration-repairs",
+        destination: "/services/emergency-refrigeration-repairs",
+        permanent: true,
+      },
+      {
+        source: "/commercial-refrigeration-repairs",
+        destination: "/services/emergency-refrigeration-repairs",
+        permanent: true,
+      },
+      {
+        source: "/services/commercial-refrigeration-maintenance",
+        destination: "/services/refrigeration-preventive-maintenance-qld",
+        permanent: true,
+      },
+      {
+        source: "/services/emergency-commercial-refrigeration-repairs",
+        destination: "/services/emergency-refrigeration-repairs",
+        permanent: true,
+      },
+      {
         source: "/commercial-refrigeration-installation",
         destination: "/services/cold-room-builder-qld",
         permanent: true,
