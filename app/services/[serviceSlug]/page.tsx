@@ -50,6 +50,29 @@ export default async function ServicePageRoute({ params }: Props) {
       )).data ?? []
     : [];
 
+  // Fetch related posts
+  const relatedPostSlugs = service.related_post_slugs ?? [];
+  const relatedPosts = relatedPostSlugs.length > 0
+    ? (await withRetry(() =>
+        supabase
+          .from("posts")
+          .select("slug, title, description, type, date, image_url")
+          .in("slug", relatedPostSlugs)
+          .eq("published", true)
+      )).data ?? []
+    : [];
+
+  // Fetch related projects
+  const relatedProjectSlugs = service.related_project_slugs ?? [];
+  const relatedProjects = relatedProjectSlugs.length > 0
+    ? (await withRetry(() =>
+        supabase
+          .from("projects")
+          .select("slug, title, description, type, location, image_url")
+          .in("slug", relatedProjectSlugs)
+      )).data ?? []
+    : [];
+
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -90,7 +113,12 @@ export default async function ServicePageRoute({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      <ServicePage service={service} relatedServices={relatedServices} />
+      <ServicePage
+        service={service}
+        relatedServices={relatedServices}
+        relatedPosts={relatedPosts}
+        relatedProjects={relatedProjects}
+      />
     </>
   );
 }

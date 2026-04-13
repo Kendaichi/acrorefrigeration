@@ -6,16 +6,26 @@ import { ArrowRight, Phone } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import { ctaBanner } from "@/data/home";
 
-const CTABanner = () => (
+const CTABanner = ({
+  heading,
+  description,
+  buttonText,
+  buttonLink,
+}: {
+  heading?: string;
+  description?: string;
+  buttonText?: string;
+  buttonLink?: string;
+} = {}) => (
   <section className="section-padding">
     <div className="container-narrow">
       <ScrollReveal>
         <div className="gradient-cta rounded-2xl md:rounded-3xl p-8 sm:p-12 md:p-16 text-center text-primary-foreground">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 tracking-tight">
-            {ctaBanner.heading}
+            {heading || ctaBanner.heading}
           </h2>
           <p className="text-primary-foreground/75 text-lg max-w-xl mx-auto mb-10">
-            {ctaBanner.subheading}
+            {description || ctaBanner.subheading}
           </p>
           <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4">
             <Button
@@ -24,8 +34,8 @@ const CTABanner = () => (
               variant="secondary"
               className="text-base px-8 font-semibold w-full sm:w-auto cursor-pointer"
             >
-              <Link href={ctaBanner.primaryCta.href}>
-                {ctaBanner.primaryCta.label} <ArrowRight className="w-4 h-4 ml-2" />
+              <Link href={buttonLink || ctaBanner.primaryCta.href}>
+                {buttonText || ctaBanner.primaryCta.label} <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
             <Button

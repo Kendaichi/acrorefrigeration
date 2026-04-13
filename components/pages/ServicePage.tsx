@@ -25,8 +25,34 @@ const cardVariant: Variants = {
 };
 
 type RelatedService = { slug: string | null; title: string; description: string };
+type RelatedPost = {
+  slug: string;
+  title: string;
+  description: string;
+  type: string;
+  date: string;
+  image_url: string | null;
+};
+type RelatedProject = {
+  slug: string;
+  title: string;
+  description: string;
+  type: string;
+  location: string;
+  image_url: string | null;
+};
 
-const ServicePage = ({ service, relatedServices }: { service: Service; relatedServices: RelatedService[] }) => {
+const ServicePage = ({
+  service,
+  relatedServices,
+  relatedPosts = [],
+  relatedProjects = [],
+}: {
+  service: Service;
+  relatedServices: RelatedService[];
+  relatedPosts?: RelatedPost[];
+  relatedProjects?: RelatedProject[];
+}) => {
   const Icon = getIcon(service.icon_name);
 
   return (
@@ -57,10 +83,14 @@ const ServicePage = ({ service, relatedServices }: { service: Service; relatedSe
             <p className="text-lg text-muted-foreground mb-8">{service.hero_desc || service.description}</p>
             <div className="flex flex-wrap gap-3">
               <Button asChild size="lg" className="cursor-pointer">
-                <Link href="/contact">Get a Quote <ArrowRight className="w-4 h-4 ml-2" /></Link>
+                <Link href={service.hero_cta_primary_link || "/contact"}>
+                  {service.hero_cta_primary_text || "Get a Quote"} <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
               </Button>
               <Button asChild size="lg" variant="destructive" className="gradient-cta border-0 cursor-pointer">
-                <a href="tel:1300227600"><Phone className="w-4 h-4 mr-2" /> 1300 227 600</a>
+                <a href={service.hero_cta_phone_link || "tel:1300227600"}>
+                  <Phone className="w-4 h-4 mr-2" /> {service.hero_cta_phone_text || "1300 227 600"}
+                </a>
               </Button>
             </div>
           </motion.div>
@@ -100,7 +130,9 @@ const ServicePage = ({ service, relatedServices }: { service: Service; relatedSe
                 <h2 className="text-3xl font-extrabold mb-4">What&apos;s Included</h2>
                 <p className="text-muted-foreground leading-relaxed mb-6">{service.overview}</p>
                 <Button asChild variant="outline" className="cursor-pointer">
-                  <Link href="/contact">Discuss Your Needs <ArrowRight className="w-4 h-4 ml-2" /></Link>
+                  <Link href={service.overview_cta_link || "/contact"}>
+                    {service.overview_cta_text || "Discuss Your Needs"} <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
                 </Button>
               </motion.div>
             )}
@@ -204,7 +236,77 @@ const ServicePage = ({ service, relatedServices }: { service: Service; relatedSe
         </section>
       )}
 
-      <CTABanner />
+      {/* Related Posts */}
+      {relatedPosts.length > 0 && (
+        <section className="section-padding bg-background">
+          <div className="container-narrow">
+            <motion.div className="mb-10" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+              <h2 className="text-3xl font-extrabold mb-4">Related Resources</h2>
+            </motion.div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {relatedPosts.map((p, i) => (
+                <motion.div key={p.slug} custom={i} variants={cardVariant} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }}>
+                  <Link href={`/resources/${p.slug}`} className="block bg-card rounded-xl border border-border hover:border-primary/30 hover:shadow-md transition-all duration-300 group h-full overflow-hidden">
+                    {p.image_url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.image_url} alt={p.title} className="w-full h-40 object-cover" />
+                    )}
+                    <div className="p-6">
+                      <div className="text-xs font-semibold text-primary mb-2">{p.type}</div>
+                      <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors duration-200">{p.title}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{p.description}</p>
+                      <span className="text-primary text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all duration-200">
+                        Read More <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Related Projects */}
+      {relatedProjects.length > 0 && (
+        <section className="section-padding bg-secondary">
+          <div className="container-narrow">
+            <motion.div className="mb-10" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+              <h2 className="text-3xl font-extrabold mb-4">Related Projects</h2>
+            </motion.div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {relatedProjects.map((pr, i) => (
+                <motion.div key={pr.slug} custom={i} variants={cardVariant} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }}>
+                  <Link href={`/projects/${pr.slug}`} className="block bg-card rounded-xl border border-border hover:border-primary/30 hover:shadow-md transition-all duration-300 group h-full overflow-hidden">
+                    {pr.image_url && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={pr.image_url} alt={pr.title} className="w-full h-40 object-cover" />
+                    )}
+                    <div className="p-6">
+                      <div className="text-xs font-semibold text-primary mb-2">
+                        {pr.type}
+                        {pr.location && ` · ${pr.location}`}
+                      </div>
+                      <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors duration-200">{pr.title}</h3>
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{pr.description}</p>
+                      <span className="text-primary text-sm font-semibold flex items-center gap-1 group-hover:gap-2 transition-all duration-200">
+                        View Project <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <CTABanner
+        heading={service.cta_heading}
+        description={service.cta_description}
+        buttonText={service.cta_button_text}
+        buttonLink={service.cta_button_link}
+      />
     </Layout>
   );
 };
